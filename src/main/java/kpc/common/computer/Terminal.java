@@ -6,7 +6,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import java.util.Arrays;
 
 public final class Terminal
-implements INBTTaggable {
+implements INBTTaggable,
+           kpc.api.computer.Terminal{
     public final int width;
     public final int height;
 
@@ -17,6 +18,10 @@ implements INBTTaggable {
     private boolean cursorBlink;
     private String empty;
     private String[] lines;
+
+    public Terminal(){
+        this(60, 19);
+    }
 
     public Terminal(int width, int height) {
         this.width = width;
@@ -30,6 +35,20 @@ implements INBTTaggable {
         this.lines = new String[this.height];
 
         this.buildEmpty();
+    }
+
+    public void clearLine(){
+        this.lines[this.cursorY] = this.empty;
+    }
+
+    @Override
+    public int getHeight() {
+        return this.height;
+    }
+
+    @Override
+    public int getWidth() {
+        return this.width;
     }
 
     public int getBackgroundColor(){

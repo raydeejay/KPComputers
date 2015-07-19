@@ -1,12 +1,12 @@
 package kpc.common.core;
 
-import kpc.api.Computer;
+import kpc.api.computer.Computer;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ComputerRegistry<TComputer extends Computer>{
+public abstract class ComputerRegistry<TComputer extends Computer>{
     private final Map<Integer, TComputer> computers = new HashMap<>();
     private int nextId = 0;
 
@@ -17,6 +17,8 @@ public class ComputerRegistry<TComputer extends Computer>{
     public boolean contains(int id){
         return this.computers.containsKey(id);
     }
+
+    public abstract void update();
 
     public TComputer get(int id){
         if(id >= 0){

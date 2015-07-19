@@ -1,26 +1,37 @@
 package kpc.common.computer;
 
-import kpc.common.utils.NBTUtils;
+import kawa.standard.Scheme;
+import kpc.api.State;
+import kpc.api.computer.OperatingSystem;
+import kpc.api.fs.FileSystem;
 import kpc.common.KPComputers;
 import kpc.common.net.KPCPacket;
+import kpc.api.ComputerPosition;
+import kpc.common.utils.NBTUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 
 public final class ClientComputer
-implements kpc.api.Computer{
+implements kpc.api.computer.Computer {
     private final int id;
-    private Terminal terminal;
+    private final ComputerPosition pos;
+    private Terminal terminal = new Terminal();
 
-    public ClientComputer(int id){
+    public ClientComputer(ComputerPosition pos, int id){
+        this.pos = pos;
         this.id = id;
     }
 
     public void requestState(){
-        System.out.println("Requesting State");
         KPCPacket packet = new KPCPacket();
         packet.id = KPCPacket.PACKET_REQUESTUPDATE;
         packet.dataInt = new int[]{this.id};
         KPComputers.channel.sendToServer(KPComputers.encode(packet));
+    }
+
+    @Override
+    public State state() {
+        throw new UnsupportedOperationException("Client state not retrievable");
     }
 
     @Override
@@ -70,7 +81,7 @@ implements kpc.api.Computer{
                 this.terminal = new Terminal(termComp.getInteger("width"), termComp.getInteger("height"));
                 this.terminal.readFromNBT(termComp);
             } else{
-                this.terminal = new Terminal(200, 150);
+                this.terminal = new Terminal();
             }
         } catch(Exception e){
             e.printStackTrace(System.err);
@@ -88,5 +99,25 @@ implements kpc.api.Computer{
     @Override
     public Terminal terminal() {
         return this.terminal;
+    }
+
+    @Override
+    public OperatingSystem os() {
+        throw new UnsupportedOperationException("Client OS not retrievable");
+    }
+
+    @Override
+    public Scheme scheme() {
+        throw new UnsupportedOperationException("Client Scheme not retrievable");
+    }
+
+    @Override
+    public FileSystem fs() {
+        throw new UnsupportedOperationException("Client FileSystem not retrievable");
+    }
+
+    @Override
+    public ComputerPosition pos() {
+        return this.pos;
     }
 }

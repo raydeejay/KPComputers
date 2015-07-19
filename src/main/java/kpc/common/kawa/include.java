@@ -57,7 +57,6 @@ extends Syntax {
             BinaryInPort inp;
             while(true){
                 File f = this.fs.resolve("/include/" + fName).toFile();
-                System.out.println(f);
                 Path reader = Path.valueOf(f);
 
                 try{

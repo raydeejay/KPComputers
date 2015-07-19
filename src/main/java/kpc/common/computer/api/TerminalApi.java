@@ -17,6 +17,14 @@ public final class TerminalApi {
         this.terminal.clear();
     }
 
+    public int getHeight(){
+        return this.terminal.getHeight();
+    }
+
+    public int getWidth(){
+        return this.terminal.getWidth();
+    }
+
     public int setForeground(String c){
         int color = Integer.parseInt(c.substring(2), 16);
         this.terminal.setForegroundColor(color);
@@ -27,6 +35,10 @@ public final class TerminalApi {
         if(o != null){
             this.terminal.write(o.toString());
         }
+    }
+
+    public void clearLine(){
+        this.terminal.clearLine();
     }
 
     public int setBackground(String c){

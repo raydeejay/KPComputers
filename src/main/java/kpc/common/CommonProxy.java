@@ -13,7 +13,7 @@ public class CommonProxy{
             case KPCPacket.PACKET_COMPUPDATE:{
                 int id = packet.dataInt[0];
                 if(!KPComputers.clientComputerRegistry.contains(id)){
-                    KPComputers.clientComputerRegistry.register(id, new ClientComputer(id));
+                    KPComputers.clientComputerRegistry.register(id, new ClientComputer(null, id));
                 }
                 KPComputers.clientComputerRegistry.get(id).handlePacket(packet, player);
                 break;

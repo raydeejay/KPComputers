@@ -1,8 +1,9 @@
 package kpc.api.fs;
 
+import kpc.api.fs.io.InputStream;
+import kpc.api.fs.io.OutputStream;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -21,4 +22,7 @@ public interface FileSystem{
     public boolean touch(String path);
     public boolean exists(String path);
     public boolean isDirectory(String path);
+    public boolean mv(String path, String to);
+    public boolean cp(String path, String to);
+    public boolean rm(String path);
 }

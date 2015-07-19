@@ -1,44 +1,34 @@
 package kpc.common.computer;
 
-import kpc.common.utils.NBTUtils;
+import kawa.standard.Scheme;
+import kpc.api.ComputerPosition;
+import kpc.api.State;
+import kpc.api.computer.OperatingSystem;
+import kpc.api.fs.FileSystem;
 import kpc.common.KPComputers;
 import kpc.common.net.KPCPacket;
+import kpc.common.utils.NBTUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChunkCoordinates;
-import net.minecraft.world.World;
 
 public final class ServerComputer
-implements kpc.api.Computer{
+implements kpc.api.computer.Computer {
     private final int id;
     private final Terminal terminal;
     private final Computer computer;
-    private World world;
-    private ChunkCoordinates pos;
+    private final ComputerPosition pos;
 
-    public ServerComputer(World world, int id){
+    public ServerComputer(ComputerPosition pos, int id){
         this.id = id;
-        this.terminal = new Terminal(200, 150);
-        this.computer = new Computer(this.terminal);
-        this.world = world;
-        this.pos = null;
+        this.terminal = new Terminal();
+        this.computer = new Computer(pos, this.terminal);
+        this.pos = pos;
     }
 
-    public World getWorld(){
-        return this.world;
-    }
-
-    public void setWorld(World world){
-        this.world = world;
-    }
-
-    public ChunkCoordinates getPosition(){
-        return this.pos;
-    }
-
-    public void setPosition(int x, int y, int z){
-        this.pos = new ChunkCoordinates(x, y, z);
+    @Override
+    public State state() {
+        return this.computer.state();
     }
 
     @Override
@@ -67,6 +57,26 @@ implements kpc.api.Computer{
     @Override
     public Terminal terminal() {
         return this.terminal;
+    }
+
+    @Override
+    public OperatingSystem os() {
+        return this.computer.os;
+    }
+
+    @Override
+    public Scheme scheme() {
+        return this.computer.scheme;
+    }
+
+    @Override
+    public FileSystem fs() {
+        return this.computer.fs;
+    }
+
+    @Override
+    public ComputerPosition pos() {
+        return this.pos;
     }
 
     public void broadcastState(){
