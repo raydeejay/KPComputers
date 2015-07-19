@@ -1,12 +1,12 @@
 package kpc.common.computer.fs;
 
 import kpc.api.fs.WritableMount;
+import kpc.api.fs.io.InputStream;
+import kpc.api.fs.io.OutputStream;
 import net.minecraftforge.common.DimensionManager;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,6 +22,8 @@ implements WritableMount{
         this.dir = DimensionManager.getCurrentSaveRootDirectory().toPath().resolve("ext9001");
         Files.createDirectories(this.dir);
         Files.createDirectories(this.dir.resolve("usr"));
+        Files.createDirectories(this.dir.resolve("usr").resolve("bin"));
+        Files.createDirectories(this.dir.resolve("usr").resolve("home"));
     }
 
     @Override
@@ -37,8 +39,9 @@ implements WritableMount{
     public OutputStream openOutputStream(String path)
     throws IOException{
         try{
-            return Files.newOutputStream(this.dir, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+            return new OutputStream(Files.newOutputStream(this.dir.resolve(path), StandardOpenOption.CREATE, StandardOpenOption.WRITE));
         } catch(Exception e){
+            e.printStackTrace(System.err);
             return null;
         }
     }
@@ -66,10 +69,26 @@ implements WritableMount{
     }
 
     @Override
+    public boolean rm(String path) {
+        Path file = this.dir.resolve(path);
+
+        if(Files.isDirectory(file)){
+            return false;
+        }
+
+        try{
+            Files.deleteIfExists(file);
+            return true;
+        } catch(Exception e){
+            return false;
+        }
+    }
+
+    @Override
     public InputStream openInputStream(String path)
     throws IOException {
         try{
-            return Files.newInputStream(this.dir.resolve(path));
+            return new InputStream(Files.newInputStream(this.dir.resolve(path)));
         } catch(Exception e){
             return null;
         }

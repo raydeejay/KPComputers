@@ -4,6 +4,7 @@ import kpc.common.computer.ServerComputer;
 
 public final class ServerComputerRegistry
 extends ComputerRegistry<ServerComputer>{
+    @Override
     public void update(){
         for (ServerComputer serverComputer : this.all()) {
             serverComputer.broadcastState();

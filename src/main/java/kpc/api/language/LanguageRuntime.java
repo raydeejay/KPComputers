@@ -1,11 +1,13 @@
 package kpc.api.language;
 
-import java.io.InputStream;
+import kpc.api.computer.Computer;
+
+import java.io.Reader;
 
 public interface LanguageRuntime{
-    public Object eval(String line)
+    public Object eval(Computer caller, String line)
     throws Exception;
 
-    public Object run(InputStream stream, Object... args)
+    public Object run(Computer caller, Reader reader, Object... args)
     throws Exception;
 }

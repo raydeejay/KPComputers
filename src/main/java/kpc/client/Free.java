@@ -5,7 +5,7 @@ import truetyper.FontHelper;
 import truetyper.FontLoader;
 import truetyper.TrueTypeFont;
 
-public final class Luxi {
+public final class Free {
     private static final ResourceLocation font = new ResourceLocation("kpc", "textures/font/free.ttf");
     private static final TrueTypeFont veraMono = FontLoader.createFont(font, 24.0F, true);
 

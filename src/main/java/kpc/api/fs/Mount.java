@@ -1,7 +1,8 @@
 package kpc.api.fs;
 
+import kpc.api.fs.io.InputStream;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 

@@ -2,7 +2,8 @@ package kpc.common.blocks;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kpc.common.KPComputers;
+import kpc.api.computer.Computer;
+import kpc.common.computer.ServerComputer;
 import kpc.common.tile.TileEntityComputer;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -54,7 +55,10 @@ extends BlockContainer{
     @Override
     public void onBlockPreDestroy(World world, int x, int y, int z, int p_149725_5_) {
         super.onBlockPreDestroy(world, x, y, z, p_149725_5_);
-        KPComputers.serverComputerRegistry.remove(((TileEntityComputer) world.getTileEntity(x, y, z)).id());
+        Computer comp = ((TileEntityComputer) world.getTileEntity(x, y, z)).createComputer();
+        if(comp instanceof ServerComputer){
+            ((ServerComputer) comp).broadcastDelete();
+        }
     }
 
     @Override

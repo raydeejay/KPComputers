@@ -1,9 +1,9 @@
 package kpc.common.computer.fs;
 
 import kpc.api.fs.Mount;
+import kpc.api.fs.io.InputStream;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,7 +56,7 @@ implements Mount {
     throws IOException {
         Path p = this.resolve(path);
         if(Files.exists(p)){
-            return Files.newInputStream(p);
+            return new InputStream(Files.newInputStream(p));
         } else{
             return null;
         }

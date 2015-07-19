@@ -1,6 +1,7 @@
 package kpc.common.tile;
 
-import kpc.api.Computer;
+import kpc.api.ComputerPosition;
+import kpc.api.computer.Computer;
 import kpc.common.KPComputers;
 import kpc.common.KPGuiHandler;
 import kpc.common.computer.ClientComputer;
@@ -38,6 +39,24 @@ extends TileEntity{
     @Override
     public void updateEntity(){
         super.updateEntity();
+
+
+    }
+
+    public Computer getComputer(){
+        if(this.worldObj.isRemote){
+            return this.getClientComputer();
+        }
+
+        return this.getServerComputer();
+    }
+
+    public ServerComputer getServerComputer(){
+        return KPComputers.serverComputerRegistry.get(this.id);
+    }
+
+    public ClientComputer getClientComputer(){
+        return KPComputers.clientComputerRegistry.get(this.id);
     }
 
     public Computer createComputer(){
@@ -49,24 +68,20 @@ extends TileEntity{
     }
 
     public ClientComputer createClientComputer(){
-        System.out.println("Creating client computer");
         if(this.worldObj.isRemote){
             if(this.id >= 0){
-                System.out.println("Verifying ID: " + this.id);
                 if(!KPComputers.clientComputerRegistry.contains(this.id)){
-                    KPComputers.clientComputerRegistry.register(this.id, new ClientComputer(this.id));
+                    KPComputers.clientComputerRegistry.register(this.id, new ClientComputer(new ComputerPosition(this.worldObj, this.xCoord, this.yCoord, this.zCoord), this.id));
                 }
 
                 return KPComputers.clientComputerRegistry.get(this.id);
             }
         }
 
-        System.out.println("Returning null");
         return null;
     }
 
     public ServerComputer createServerComputer(){
-        System.out.println("creating server computer");
         if(!this.worldObj.isRemote){
             boolean changed = false;
             if(this.id <= 0){
@@ -75,7 +90,7 @@ extends TileEntity{
             }
 
             if(!KPComputers.serverComputerRegistry.contains(this.id)){
-                ServerComputer computer = new ServerComputer(this.worldObj, this.id);
+                ServerComputer computer = new ServerComputer(new ComputerPosition(this.worldObj, this.xCoord, this.yCoord, this.zCoord), this.id);
                 KPComputers.serverComputerRegistry.register(this.id, computer);
                 changed = true;
             }
@@ -87,7 +102,6 @@ extends TileEntity{
             return KPComputers.serverComputerRegistry.get(this.id);
         }
 
-        System.out.println("Returning null");
         return null;
     }
 
