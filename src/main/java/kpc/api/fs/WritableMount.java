@@ -1,7 +1,8 @@
 package kpc.api.fs;
 
+import kpc.api.fs.io.OutputStream;
+
 import java.io.IOException;
-import java.io.OutputStream;
 
 public interface WritableMount
 extends Mount{
@@ -10,4 +11,5 @@ extends Mount{
 
     public boolean mkdir(String path);
     public boolean touch(String path);
+    public boolean rm(String path);
 }

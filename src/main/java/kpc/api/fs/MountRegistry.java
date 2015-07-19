@@ -15,8 +15,8 @@ public final class MountRegistry{
                 throw new IllegalAccessException("Cannot mount above the root");
             }
 
-            if(mounts.containsKey(path) && !path.equals("/")){
-                throw new IllegalStateException("Mount already exists (" + path + ")");
+            if(mounts.containsKey(path)){
+                return;
             }
 
             mounts.put(path, mount);

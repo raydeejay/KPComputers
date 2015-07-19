@@ -4,10 +4,10 @@ import kpc.api.fs.FileSystem;
 import kpc.api.fs.Mount;
 import kpc.api.fs.MountRegistry;
 import kpc.api.fs.WritableMount;
+import kpc.api.fs.io.InputStream;
+import kpc.api.fs.io.OutputStream;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -64,6 +64,73 @@ implements FileSystem {
     }
 
     @Override
+    public boolean mv(String path, String to) {
+        try{
+            path = this.sanitize(path, false);
+            to = this.sanitize(to, false);
+            Mount pathMount = this.getMount(path);
+            Mount toMount = this.getMount(to);
+
+            if(!(toMount instanceof WritableMount)){
+                return false;
+            }
+
+            try(java.io.InputStream in = pathMount.openInputStream(path).toInputStream();
+                java.io.OutputStream out = ((WritableMount) toMount).openOutputStream(to).toOutputStream()){
+
+                byte[] buffer = new byte[8192];
+                int len;
+                while((len = in.read(buffer, 0, 8192)) != -1){
+                    out.write(buffer, 0, len);
+                }
+
+                return this.rm(path);
+            }
+        } catch(Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean cp(String path, String to) {
+        try{
+            path = this.sanitize(path, false);
+            to = this.sanitize(to, false);
+            Mount pathMount = this.getMount(path);
+            Mount toMount = this.getMount(to);
+
+            if(!(toMount instanceof WritableMount)){
+                return false;
+            }
+
+            try(java.io.InputStream in = pathMount.openInputStream(path).toInputStream();
+                java.io.OutputStream out = ((WritableMount) toMount).openOutputStream(to).toOutputStream()){
+
+                byte[] buffer = new byte[8192];
+                int len;
+                while((len = in.read(buffer, 0, 8192)) != -1){
+                    out.write(buffer, 0, len);
+                }
+
+                return true;
+            }
+        } catch(Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean rm(String path) {
+        try{
+            path = this.sanitize(path, false);
+            Mount m = this.getMount(path);
+            return m instanceof WritableMount && ((WritableMount) m).rm(path);
+        } catch(Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void list(String path, final List<String> list)
     throws IOException{
         try{
@@ -109,8 +176,6 @@ implements FileSystem {
     public Path resolve(String path) {
         path = this.sanitize(path, false);
         Mount m = this.getMount(path);
-        System.out.println(m.getClass().getName());
-        System.out.println("Returning mount for path: " + path);
         return m.resolve(path);
     }
 

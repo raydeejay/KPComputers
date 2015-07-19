@@ -1,61 +1,94 @@
 package kpc.common.computer;
 
 import kpc.api.Signal;
+import kpc.api.fs.io.InputStream;
 import kpc.api.language.LanguageRegistry;
 import kpc.api.language.LanguageRuntime;
+import kpc.common.KPComputers;
 import kpc.common.utils.ArgsParser;
 
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public final class OperatingSystem{
+public final class OperatingSystem
+implements kpc.api.computer.OperatingSystem{
     private final Queue<Signal> signalQueue = new LinkedList<>();
     private final Lock readLock = new ReentrantLock();
     private final Lock writeLock = new ReentrantLock();
-    private final Computer computer;
+    private final kpc.api.computer.Computer computer;
 
     protected OperatingSystem(Computer computer){
         this.computer = computer;
     }
 
     public String version(){
-        return "v0.0";
+        return "v" + KPComputers.version;
     }
 
     public Object eval(String code){
         try {
-            return this.computer.scheme.eval(code);
+            return this.computer.scheme().eval(code);
         } catch (Throwable throwable) {
-            this.computer.terminal.clear();
-            this.computer.terminal.setCursorPos(1, 1);
-            this.computer.terminal.write("Error executing");
-            this.computer.terminal.setCursorPos(1, 2);
-            this.computer.terminal.write("Exception: " + throwable.getMessage());
+            this.computer.terminal().clear();
+            this.computer.terminal().setCursorPos(1, 1);
+            this.computer.terminal().write("Error executing");
+            this.computer.terminal().setCursorPos(1, 2);
+            this.computer.terminal().write("Exception: " + throwable.getMessage());
             throwable.printStackTrace(System.err);
             return null;
         }
     }
 
-    public Object runScript(String ext, String exec, Object... args){
-        if(this.computer.fs.exists(exec.trim())){
-            try(InputStream in = this.computer.fs.openInputStream(exec.trim())){
-                LanguageRuntime runtime = LanguageRegistry.getLanguage(ext.trim());
-                Object ret = runtime.run(in, args);
-                if(ret != null){
-                    return ret;
+    public Object runScript(String ext, String exec){
+        String script = exec.contains(" ") ? exec.substring(0, exec.indexOf(' ')) : exec;
+        String[] args = exec.contains(" ") ? ArgsParser.parse(exec.substring(exec.indexOf(' ') + 1)) : null;
+
+        if(this.computer.fs().exists(script.trim() + ext)){
+            try(InputStream in = this.computer.fs().openInputStream(script.trim() + ext)){
+                LanguageRuntime runtime = LanguageRegistry.getLanguage(ext);
+
+                if(runtime == null){
+                    throw new NullPointerException("Runtime == null");
                 }
 
                 return null;
             } catch(Exception e){
                 return "Exception: " + e.getMessage();
             }
-        } else{
-            return "Unable to locate: " + exec;
         }
+
+        if(this.computer.fs().exists("/bin/" + script.trim() + ext)){
+            try(InputStream in = this.computer.fs().openInputStream("/bin/" + script.trim() + ext)){
+                LanguageRuntime runtime = LanguageRegistry.getLanguage(ext);
+
+                if(runtime == null){
+                    throw new NullPointerException("Runtime == null");
+                }
+
+                return null;
+            } catch(Exception e){
+                return "Exception: " + e.getMessage();
+            }
+        }
+
+        if(this.computer.fs().exists("/usr/bin/" + script.trim() + ext)){
+            try(InputStream in = this.computer.fs().openInputStream("/usr/bin/" + script.trim() + ext)){
+                LanguageRuntime runtime = LanguageRegistry.getLanguage(ext);
+
+                if(runtime == null){
+                    throw new NullPointerException("Runtime == null");
+                }
+
+                return null;
+            } catch(Exception e){
+                return "Exception: " + e.getMessage();
+            }
+        }
+
+        return "Unable to locate: " + script.trim();
     }
 
     public Object runScheme(String execution){
@@ -66,11 +99,11 @@ public final class OperatingSystem{
             return "Cannot rerun bios.scm";
         }
 
-        if(this.computer.fs.exists(script.trim() + ".scm")){
-            try(InputStream in = this.computer.fs.openInputStream(script.trim() + ".scm")){
-                this.computer.scheme.define("args", args);
-                Object ret = this.computer.scheme.eval(new InputStreamReader(in));
-                this.computer.scheme.define("args", null);
+        if(this.computer.fs().exists(script.trim() + ".scm")){
+            try(InputStream in = this.computer.fs().openInputStream(script.trim() + ".scm")){
+                this.computer.scheme().define("args", args);
+                Object ret = this.computer.scheme().eval(new InputStreamReader(in.toInputStream()));
+                this.computer.scheme().define("args", null);
                 if(ret != null){
                     return ret;
                 } else{
@@ -81,11 +114,27 @@ public final class OperatingSystem{
             }
         }
 
-        if(this.computer.fs.exists("/bin/" + script.trim() + ".scm")){
-            try(InputStream in = this.computer.fs.openInputStream("/bin/" + script.trim() + ".scm")){
-                this.computer.scheme.define("args", args);
-                Object ret = this.computer.scheme.eval(new InputStreamReader(in));
-                this.computer.scheme.define("args", null);
+        if(this.computer.fs().exists("/bin/" + script.trim() + ".scm")){
+            try(InputStream in = this.computer.fs().openInputStream("/bin/" + script.trim() + ".scm")){
+                this.computer.scheme().define("args", args);
+                Object ret = this.computer.scheme().eval(new InputStreamReader(in.toInputStream()));
+                this.computer.scheme().define("args", null);
+                if(ret != null){
+                    return ret;
+                } else{
+                    return null;
+                }
+            } catch(Throwable e){
+                e.printStackTrace(System.err);
+                return "Exception: " + e.getMessage();
+            }
+        }
+
+        if(computer.fs().exists("/usr/bin/" + script.trim() + ".scm")){
+            try(InputStream in = this.computer.fs().openInputStream("/usr/bin/" + script.trim() + ".scm")){
+                this.computer.scheme().define("args", args);
+                Object ret = this.computer.scheme().eval(new InputStreamReader(in.toInputStream()));
+                this.computer.scheme().define("args", null);
                 if(ret != null){
                     return ret;
                 } else{

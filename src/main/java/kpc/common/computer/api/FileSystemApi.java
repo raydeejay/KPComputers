@@ -1,6 +1,8 @@
 package kpc.common.computer.api;
 
 import kpc.api.fs.FileSystem;
+import kpc.api.fs.io.InputStream;
+import kpc.api.fs.io.OutputStream;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -33,5 +35,35 @@ public final class FileSystemApi{
 
     public void touch(String path){
         this.fs.touch(path);
+    }
+
+    public OutputStream open(String path){
+        try{
+            return this.fs.openOutputStream(path);
+        } catch(Exception e){
+            e.printStackTrace(System.err);
+            return null;
+        }
+    }
+
+    public InputStream read(String path){
+        try{
+            return this.fs.openInputStream(path);
+        } catch(Exception e){
+            e.printStackTrace(System.err);
+            return null;
+        }
+    }
+
+    public boolean mv(String from, String to){
+        return this.fs.mv(from, to);
+    }
+
+    public boolean cp(String from, String to){
+        return this.fs.cp(from, to);
+    }
+
+    public boolean rm(String path){
+        return this.fs.rm(path);
     }
 }

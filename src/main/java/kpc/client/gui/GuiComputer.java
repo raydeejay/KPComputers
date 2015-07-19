@@ -1,6 +1,6 @@
 package kpc.client.gui;
 
-import kpc.api.Computer;
+import kpc.api.computer.Computer;
 import kpc.client.gui.widget.WidgetTerminal;
 import kpc.common.tile.TileEntityComputer;
 import net.minecraft.client.Minecraft;
@@ -29,22 +29,28 @@ extends GuiScreen{
     }
 
     private final TileEntityComputer tile;
-    private final Computer computer;
     private WidgetTerminal widgetTerminal;
 
     public GuiComputer(TileEntityComputer tile){
         this.tile = tile;
-        this.computer = tile.createComputer();
     }
 
     @Override
     public void initGui(){
         super.initGui();
-        this.widgetTerminal = new WidgetTerminal(this.computer);
+        Keyboard.enableRepeatEvents(true);
+        this.widgetTerminal = new WidgetTerminal(this.tile.createClientComputer());
+    }
+
+    @Override
+    public void onGuiClosed() {
+        Keyboard.enableRepeatEvents(false);
+        super.onGuiClosed();
     }
 
     @Override
     public void drawScreen(int mX, int mY, float f){
+        Computer computer = this.tile.getComputer();
         this.drawDefaultBackground();
         ScaledResolution scaledResolution = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
         int scaleFactor = scaledResolution.getScaleFactor();
@@ -56,11 +62,12 @@ extends GuiScreen{
         GL11.glScalef(4.0F / (float) scaleFactor, 4.0F / (float) scaleFactor, 0.0F);
         this.mc.renderEngine.bindTexture(TEXTURE);
         this.drawTexturedModalRect(dX / 4 - 8, dY / 4 - 8, 0, 0, 256, 256);
-        this.drawColoredQuad(this.computer.terminal().getBackgroundColor(), dX / 4, dY / 4, this.zLevel, 200, 150);
+        this.drawColoredQuad(computer.terminal().getBackgroundColor(), dX / 4, dY / 4, this.zLevel, 200, 150);
+        GL11.glScalef(0.25F, 0.25F, 0.0F);
 
         int x = dX / 4;
         int y = dY / 4;
-        this.widgetTerminal.draw(x + 70, y + 15);
+        this.widgetTerminal.draw(x + 70, y + 10);
     }
 
     @Override
@@ -70,28 +77,65 @@ extends GuiScreen{
 
     @Override
     public void keyTyped(char c, int code){
+        Computer computer = this.tile.createComputer();
         if(code == Keyboard.KEY_ESCAPE){
             this.mc.setIngameFocus();
             return;
         }
 
         if(code == Keyboard.KEY_RETURN){
-            if(this.computer != null){
-                this.computer.queueEvent("char", "__enter__", Keyboard.KEY_RETURN);
+            if(computer != null){
+                computer.queueEvent("char", "__enter__", Keyboard.KEY_RETURN);
                 return;
             }
         }
 
         if(code == Keyboard.KEY_BACK){
-            if(this.computer != null){
-                this.computer.queueEvent("char", "__back__", Keyboard.KEY_BACK);
+            if(computer != null){
+                computer.queueEvent("char", "__back__", Keyboard.KEY_BACK);
                 return;
             }
         }
 
+        if(code == Keyboard.KEY_UP){
+            if(computer != null){
+                computer.queueEvent("char", "__up__", Keyboard.KEY_UP);
+            }
+        }
+
+        if(code == Keyboard.KEY_DOWN){
+            if(computer != null){
+                computer.queueEvent("char", "__down__", Keyboard.KEY_DOWN);
+            }
+        }
+
+        if(code == Keyboard.KEY_LEFT){
+            if(computer != null){
+                computer.queueEvent("char", "__left__", Keyboard.KEY_LEFT);
+            }
+        }
+
+        if(code == Keyboard.KEY_RIGHT){
+            if(computer != null){
+                computer.queueEvent("char", "__right__", Keyboard.KEY_RIGHT);
+            }
+        }
+
+        if(code == Keyboard.KEY_TAB){
+            if(computer != null){
+                computer.queueEvent("char", "__tab__", Keyboard.KEY_TAB);
+            }
+        }
+
+        if(code == Keyboard.KEY_LCONTROL){
+            if(computer != null){
+                computer.queueEvent("char", "__ctrl__", Keyboard.KEY_LCONTROL);
+            }
+        }
+
         if(ChatAllowedCharacters.isAllowedCharacter(c)){
-            if(this.computer != null){
-                this.computer.queueEvent("char", Character.toString(c), code);
+            if(computer != null){
+                computer.queueEvent("char", Character.toString(c), code);
             }
         }
     }
