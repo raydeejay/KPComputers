@@ -70,12 +70,12 @@
                             (term:clearLine)
                             (term:write (buf:get (+ y scrollY)))
                             (set! y (inc y))
-                            (write-lines y)))))
+                            (write-lines y buf)))))
 
 (define draw-text (lambda ()
                      (define oldY y)
                      (set! y 0)
-                     (write-lines y)
+                     (write-lines y lines)
                      (term:setCursorPos (- x scrollX) (- y scrollY))
                      (set! y oldY)))
 
