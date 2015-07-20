@@ -283,15 +283,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; initialization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define init (lambda ())
-  (load filePath)
-  (cond ((= (buffer:size) 0)
-         (fill 0 h)))
-  (clear-term)
-  (draw-text)
-  (draw-modeline)
-  (draw-text)
-  (term:setCursorPos x y))
+(define init (lambda ()
+               (load filePath)
+               (cond ((= (buffer:size) 0)
+                      (fill 0 h)))
+               (clear-term)
+               (draw-text)
+               (draw-modeline)
+               (draw-text)
+               (term:setCursorPos x y)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; entry point
