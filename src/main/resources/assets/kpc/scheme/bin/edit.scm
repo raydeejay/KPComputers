@@ -166,8 +166,7 @@
                               (setCursorPos x y))
                              (else
                               (do-menu-function menu-item)))
-                       (draw-modeline)
-                       (run)))
+                       (draw-modeline)))
 
 (define handle-back (lambda ()
                       (cond ((> x 1)
@@ -187,20 +186,17 @@
                              (draw-text)
                              (set! x (inc prevLine))
                              (set! y (dec y))
-                             (setCursorPos x y)))
-                      (run)))
+                             (setCursorPos x y)))))
 
 (define handle-up (lambda ()
                     (cond ((> y 1)
                            (set! y (dec y))
-                           (setCursorPos x y)))
-                    (run)))
+                           (setCursorPos x y)))))
 
 (define handle-down (lambda ()
                       (cond ((< y (- (lines:size) 1))
                              (set! y (inc y))
-                             (setCursorPos x y)))
-                      (run)))
+                             (setCursorPos x y)))))
 
 (define handle-left (lambda ()
                       (cond ((not menu)
@@ -214,8 +210,7 @@
                              (cond ((< menu-item 0)
                                     (set! menu-item 1)))
                              (draw-modeline)))
-                      (setCursorPos x y)
-                      (run)))
+                      (setCursorPos x y)))
 
 (define handle-right (lambda ()
                        (cond ((not menu)
@@ -230,21 +225,18 @@
                               (cond ((> menu-item 1)
                                      (set! menu-item 1)))
                               (draw-modeline)))
-                       (setCursorPos x y)
-                       (run)))
+                       (setCursorPos x y)))
 
 (define handle-tab (lambda ()
                      (define s (lines:get (dec y)))
                      (lines:set (dec y) (str:combine "  " s))
                      (set! x (+ x 2))
                      (setCursorPos x y)
-                     (draw-line (dec y))
-                     (run)))
+                     (draw-line (dec y))))
 
 (define handle-ctrl (lambda ()
                       (set! menu (not menu))
-                      (draw-modeline)
-                      (run)))
+                      (draw-modeline)))
 
 (define handle-key (lambda ()
                      (define s (lines:get (dec y)))
@@ -254,8 +246,7 @@
                      (lines:set (dec y) newLine)
                      (draw-line (dec y))
                      (set! x (inc x))
-                     (setCursorPos x y)
-                     (run)))
+                     (setCursorPos x y)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; main loop
@@ -281,7 +272,8 @@
                                   ((string=? ((e:args) 0) "__ctrl__")
                                    (handle-ctrl))
                                   (else
-                                   (handle-key (e:args))))))))))
+                                   (handle-key (e:args))))))
+                     (run)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NOTE: the linkedlist needs at least a single empty line
