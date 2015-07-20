@@ -25,9 +25,9 @@
 
 (define eof? (lambda (line) (= -1 line)))
 
-(define clear-term (lambda ())
-  (term:clear)
-  (term:setCursorPos 1 1))
+(define clear-term (lambda ()
+                     (term:clear)
+                     (term:setCursorPos 1 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; buffers (one, at least)
