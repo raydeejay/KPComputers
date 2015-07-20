@@ -32,6 +32,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; buffers (one, at least)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define point (cons 1 1))
+
+(define point-x (lambda () (car point)))
+(define point-y (lambda () (cdr point)))
+
+(define set-point-x (lambda (x))
+  (set-car! point x))
+
+(define set-point-y (lambda (y))
+  (set-cdr! point y))
+
+(define set-point (lambda (x y))
+  (set-point-x x)
+  (set-point-y y))
+
+(define idx->point (lambda (n) (inc n)))
+(define point->idx (lambda (n) (dec n)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; loading and saving
