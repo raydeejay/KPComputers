@@ -71,17 +71,17 @@
                               (write-lines y buf))))
 
 (define draw-text (lambda ()
-                     (define oldY y)
-                     (set! y 0)
-                     (write-lines y lines)
-                     (term:setCursorPos (- x scrollX) (- y scrollY))
-                     (set! y oldY)))
+                    (define oldY y)
+                    (set! y 0)
+                    (write-lines y lines)
+                    (term:setCursorPos (- x scrollX) (- y scrollY))
+                    (set! y oldY)))
 
 (define draw-line (lambda (n)
-                     (term:setCursorPos (- 1 scrollX) (- (inc n) scrollY))
-                     (term:clearLine)
-                     (term:write (lines:get n))
-                     (term:setCursorPos (- x scrollX) (- (inc n) scrollY))))
+                    (term:setCursorPos (- 1 scrollX) (- (inc n) scrollY))
+                    (term:clearLine)
+                    (term:write (lines:get n))
+                    (term:setCursorPos (- x scrollX) (- (inc n) scrollY))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; menu
@@ -95,32 +95,32 @@
                              (draw-item (string-append "[" item "]"))))
 
 (define draw-menu (lambda (m mi)
-                      (cond (m
-                             (if (= mi 0)
-                                 (draw-item-selected "Save")
-                                 (draw-item "Save"))
-                             (if (= mi 1)
-                                 (draw-item-selected "Exit")
-                                 (draw-item "Exit")))
-                            (else
-                             (draw-item "Press Ctrl for menu")))))
+                    (cond (m
+                           (if (= mi 0)
+                               (draw-item-selected "Save")
+                               (draw-item "Save"))
+                           (if (= mi 1)
+                               (draw-item-selected "Exit")
+                               (draw-item "Exit")))
+                          (else
+                           (draw-item "Press Ctrl for menu")))))
 
 (define draw-modeline (lambda ()
-                          (let ((lnStr (string-append "Ln "
-                                                      (java.lang.String:valueOf y))))
-                            (term:setCursorPos 1 (dec h))
-                            (term:clearLine)
-                            (term:setCursorPos (- w (string-length lnStr)) (dec h))
-                            (term:write lnStr))
+                        (let ((lnStr (string-append "Ln "
+                                                    (java.lang.String:valueOf y))))
                           (term:setCursorPos 1 (dec h))
-                          (draw-menu menu menu-item)
-                          (term:setCursorPos (- x scrollX) (- y scrollY))))
+                          (term:clearLine)
+                          (term:setCursorPos (- w (string-length lnStr)) (dec h))
+                          (term:write lnStr))
+                        (term:setCursorPos 1 (dec h))
+                        (draw-menu menu menu-item)
+                        (term:setCursorPos (- x scrollX) (- y scrollY))))
 
 (define do-menu-function (lambda (func)
-                     (cond ((= func 0)
-                            (save filePath))
-                           ((= func 1)
-                            (set! running #f)))))
+                           (cond ((= func 0)
+                                  (save filePath))
+                                 ((= func 1)
+                                  (set! running #f)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; cursor
