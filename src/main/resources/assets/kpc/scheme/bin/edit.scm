@@ -62,15 +62,13 @@
 ;; writing to the terminal
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define write-lines (lambda (index buf)
-                     (cond ((or (= index (- h 2))
-                                (= index (dec (buf:size))))
-                            '())
-                           (else
-                            (term:setCursorPos 1 (inc y))
-                            (term:clearLine)
-                            (term:write (buf:get (+ y scrollY)))
-                            (set! y (inc y))
-                            (write-lines y buf)))))
+                      (unless (or (= index (- h 2))
+                                  (= index (dec (buf:size))))
+                              (term:setCursorPos 1 (inc y))
+                              (term:clearLine)
+                              (term:write (buf:get (+ y scrollY)))
+                              (set! y (inc y))
+                              (write-lines y buf))))
 
 (define draw-text (lambda ()
                      (define oldY y)
