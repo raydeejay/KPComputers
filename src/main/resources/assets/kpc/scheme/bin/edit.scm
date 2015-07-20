@@ -11,7 +11,7 @@
 (define y 1)
 (define scrollX 0)
 (define scrollY 0)
-(define lines (java.util.LinkedList))
+(define buffer (java.util.LinkedList))
 (define filePath (args 0))
 (define menu #f)
 (define menu-item 0)
@@ -45,8 +45,8 @@
 
 (define load (lambda (path)
                (when (fs:exists path)
-                     (set! lines (consume (fs:read path)
-                                          (java.util.LinkedList))))))
+                     (set! buffer (consume (fs:read path)
+                                           (java.util.LinkedList))))))
 
 (define produce (lambda (file index buf)
                   (unless (< index (buf:size))
@@ -55,7 +55,7 @@
                             (produce file (inc index) buf)))))
 
 (define save (lambda (path)
-               (produce (fs:open path) 0 lines)
+               (produce (fs:open path) 0 buffer)
                (set! menu #f)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -73,14 +73,14 @@
 (define draw-text (lambda ()
                     (define oldY y)
                     (set! y 0)
-                    (write-lines y lines)
+                    (write-lines y buffer)
                     (term:setCursorPos (- x scrollX) (- y scrollY))
                     (set! y oldY)))
 
 (define draw-line (lambda (n)
                     (term:setCursorPos (- 1 scrollX) (- (inc n) scrollY))
                     (term:clearLine)
-                    (term:write (lines:get n))
+                    (term:write (buffer:get n))
                     (term:setCursorPos (- x scrollX) (- (inc n) scrollY))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -155,8 +155,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define handle-enter (lambda ()
                        (cond ((not menu)
-                              (define line (lines:get (dec y)))
-                              (lines:set (dec y) (str:sstring line 0 (dec x)))
+                              (define line (buffer:get (dec y)))
+                              (buffer:set (dec y) (str:sstring line 0 (dec x)))
                               (draw-text)
                               (set! x 1)
                               (set! y (inc y))
@@ -167,19 +167,19 @@
 
 (define handle-back (lambda ()
                       (cond ((> x 1)
-                             (define line (lines:get (dec y)))
+                             (define line (buffer:get (dec y)))
                              (define newLine (str:combine (str:sstring line 0 (- x 2))
                                                           (str:sstring line x)))
-                             (lines:set (dec y) newLine)
+                             (buffer:set (dec y) newLine)
                              (draw-line (dec y))
                              (set! x (dec x))
                              (setCursorPos x y))
                             ((> y 1)
-                             (define prevLine (string-length (lines:get (- y 2))))
-                             (define newLine (str:combine (lines:get (- y 2))
-                                                          (lines:get (dec y))))
-                             (lines:set (dec y) newLine)
-                             (lines:remove (dec y))
+                             (define prevLine (string-length (buffer:get (- y 2))))
+                             (define newLine (str:combine (buffer:get (- y 2))
+                                                          (buffer:get (dec y))))
+                             (buffer:set (dec y) newLine)
+                             (buffer:remove (dec y))
                              (draw-text)
                              (set! x (inc prevLine))
                              (set! y (dec y))
@@ -191,7 +191,7 @@
                            (setCursorPos x y)))))
 
 (define handle-down (lambda ()
-                      (cond ((< y (- (lines:size) 1))
+                      (cond ((< y (- (buffer:size) 1))
                              (set! y (inc y))
                              (setCursorPos x y)))))
 
@@ -200,7 +200,7 @@
                              (cond ((> x 1)
                                     (set! x (dec x)))
                                    ((and (= x 1) (> y 1))
-                                    (set! x (string-length (lines:get (dec y))))
+                                    (set! x (string-length (buffer:get (dec y))))
                                     (set! y (dec y)))))
                             (else
                              (set! menu-item (dec menu-item))
@@ -211,10 +211,10 @@
 
 (define handle-right (lambda ()
                        (cond ((not menu)
-                              (cond ((< x (inc (string-length (lines:get y))))
+                              (cond ((< x (inc (string-length (buffer:get y))))
                                      (set! x (inc x)))
-                                    ((and (= x (inc (string-length (lines:get y))))
-                                          (< y (lines:size)))
+                                    ((and (= x (inc (string-length (buffer:get y))))
+                                          (< y (buffer:size)))
                                      (set! x 1)
                                      (set! y (inc y)))))
                              (else
@@ -225,8 +225,8 @@
                        (setCursorPos x y)))
 
 (define handle-tab (lambda ()
-                     (define s (lines:get (dec y)))
-                     (lines:set (dec y) (str:combine "  " s))
+                     (define s (buffer:get (dec y)))
+                     (buffer:set (dec y) (str:combine "  " s))
                      (set! x (+ x 2))
                      (setCursorPos x y)
                      (draw-line (dec y))))
@@ -236,11 +236,11 @@
                       (draw-modeline)))
 
 (define handle-key (lambda ()
-                     (define s (lines:get (dec y)))
+                     (define s (buffer:get (dec y)))
                      (define newLine (str:combine (str:sstring s 0 (dec x))
                                                   ((e:args) 0)
                                                   (str:sstring s x)))
-                     (lines:set (dec y) newLine)
+                     (buffer:set (dec y) newLine)
                      (draw-line (dec y))
                      (set! x (inc x))
                      (setCursorPos x y)))
@@ -277,7 +277,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define fill (lambda (index stop)
                (cond ((not (= index stop))
-                      (lines:add "")
+                      (buffer:add "")
                       (fill (inc index) stop)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -285,7 +285,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define init (lambda ())
   (load filePath)
-  (cond ((= (lines:size) 0)
+  (cond ((= (buffer:size) 0)
          (fill 0 h)))
   (clear-term)
   (draw-text)
