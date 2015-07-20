@@ -79,12 +79,11 @@
                      (term:setCursorPos (- x scrollX) (- y scrollY))
                      (set! y oldY)))
 
-(define draw-line (lambda (line)
-                     (define l (lines:get line))
-                     (term:setCursorPos (- 1 scrollX) (- (inc line) scrollY))
+(define draw-line (lambda (n)
+                     (term:setCursorPos (- 1 scrollX) (- (inc n) scrollY))
                      (term:clearLine)
-                     (term:write l)
-                     (term:setCursorPos (- x scrollX) (- (inc line) scrollY))))
+                     (term:write (lines:get n))
+                     (term:setCursorPos (- x scrollX) (- (inc n) scrollY))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; menu
