@@ -296,7 +296,7 @@
                (draw-text)
                (draw-modeline)
                (draw-text)
-               (term:setCursorPos x y)))
+               (term:setCursorPos 1 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; entry point
