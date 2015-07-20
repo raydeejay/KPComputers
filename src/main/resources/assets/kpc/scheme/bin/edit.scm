@@ -96,7 +96,7 @@
 
 (define draw-menu (lambda (m mi)
                     (cond (m
-                           (if (= mi 0)
+                           (if (zero? mi)
                                (draw-item-selected "Save")
                                (draw-item "Save"))
                            (if (= mi 1)
@@ -117,7 +117,7 @@
                         (term:setCursorPos (- x scrollX) (- y scrollY))))
 
 (define do-menu-function (lambda (func)
-                           (cond ((= func 0)
+                           (cond ((zero? func)
                                   (save filePath))
                                  ((= func 1)
                                   (set! running #f)))))
@@ -285,8 +285,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define init (lambda ()
                (load filePath)
-               (cond ((= (buffer:size) 0)
-                      (fill 0 h)))
+               (when (zero? (buffer:size))
+                     (lines:add ""))
                (clear-term)
                (draw-text)
                (draw-modeline)
