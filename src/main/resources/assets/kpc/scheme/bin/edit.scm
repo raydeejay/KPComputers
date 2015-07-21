@@ -259,36 +259,36 @@
 ;; main loop
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define run (lambda ()
-              (let ((x (get-x))
-                    (y (get-y)))
-                (cond (running
-                       (define e (os:pull))
-                       (cond ((string=? (e:name) "char")
-                              (cond ((string=? ((e:args) 0) "__enter__")
-                                     (if menu
-                                         (handle-enter-menu x y)
-                                         (handle-enter x y)))
-                                    ((string=? ((e:args) 0) "__back__")
-                                     (handle-back x y))
-                                    ((string=? ((e:args) 0) "__up__")
-                                     (handle-up x y))
-                                    ((string=? ((e:args) 0) "__down__")
-                                     (handle-down x y))
-                                    ((string=? ((e:args) 0) "__left__")
-                                     (if menu
-                                         (handle-left-menu x y)
-                                         (handle-left x y)))
-                                    ((string=? ((e:args) 0) "__right__")
-                                     (if menu
-                                         (handle-right-menu x y)
-                                         (handle-right x y)))
-                                    ((string=? ((e:args) 0) "__tab__")
-                                     (handle-tab x y))
-                                    ((string=? ((e:args) 0) "__ctrl__")
-                                     (handle-ctrl x y))
-                                    (else
-                                     (handle-key x y ((e:args) 0))))))
-                       (run))))))
+              (when running
+                    (let ((x (get-x))
+                          (y (get-y))
+                          (e (os:pull)))
+                      (cond ((string=? (e:name) "char")
+                             (cond ((string=? ((e:args) 0) "__enter__")
+                                    (if menu
+                                        (handle-enter-menu x y)
+                                        (handle-enter x y)))
+                                   ((string=? ((e:args) 0) "__back__")
+                                    (handle-back x y))
+                                   ((string=? ((e:args) 0) "__up__")
+                                    (handle-up x y))
+                                   ((string=? ((e:args) 0) "__down__")
+                                    (handle-down x y))
+                                   ((string=? ((e:args) 0) "__left__")
+                                    (if menu
+                                        (handle-left-menu x y)
+                                        (handle-left x y)))
+                                   ((string=? ((e:args) 0) "__right__")
+                                    (if menu
+                                        (handle-right-menu x y)
+                                        (handle-right x y)))
+                                   ((string=? ((e:args) 0) "__tab__")
+                                    (handle-tab x y))
+                                   ((string=? ((e:args) 0) "__ctrl__")
+                                    (handle-ctrl x y))
+                                   (else
+                                    (handle-key x y ((e:args) 0)))))))
+                    (run))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NOTE: the linkedlist needs at least a single empty line
