@@ -76,7 +76,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; writing to the terminal
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define write-lines (lambda (index buf)
+(define write-lines (lambda (index buf scrollX scrollY)
                       (unless (or (= index (dec (cursor->idx h)))
                                   (= index (dec (buf:size))))
                               (term:setCursorPos 1 (idx->cursor index))
@@ -84,11 +84,11 @@
                               (term:write (buf:get (+ index scrollY)))
                               (write-lines (inc index) buf))))
 
-(define draw-text (lambda (x y)
-                    (write-lines (cursor->idx y) buffer)
+(define draw-text (lambda (x y scrollX scrollY)
+                    (write-lines (cursor->idx y) buffer scrollX scrollY)
                     (set-cursor (- x scrollX) (- y scrollY))))
 
-(define draw-line (lambda (n)
+(define draw-line (lambda (n scrollX scrollY)
                     (term:setCursorPos (- 1 scrollX) (- (inc n) scrollY))
                     (term:clearLine)
                     (term:write (buffer:get n))
@@ -128,24 +128,6 @@
                                  ((= func 1)
                                   (set! running #f)))))
 
-(define handle-enter-menu (lambda ()
-                            (do-menu-function menu-item)
-                            (draw-modeline)))
-
-(define handle-left-menu (lambda ()
-                           (set! menu-item (dec menu-item))
-                           (cond ((< menu-item 0)
-                                  (set! menu-item 1)))
-                           (draw-modeline)
-                           (setCursorPos (get-x) (get-y))))
-
-(define handle-right-menu (lambda ()
-                            (set! menu-item (inc menu-item))
-                            (cond ((> menu-item 1)
-                                   (set! menu-item 1)))
-                            (draw-modeline)
-                            (setCursorPos (get-x) (get-y))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; cursor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -170,122 +152,145 @@
                               (set! screenY (dec h))
                               (set! redraw #t)))
                        (cond (redraw
-                              (draw-text (get-x) (get-y))))
+                              (draw-text (get-x) (get-y) scrollX scrollY)))
                        (set-cursor screenX screenY)
                        (draw-modeline)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; menu keyboard handling
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define handle-enter-menu (lambda (x y)
+                            (do-menu-function menu-item)
+                            (draw-modeline)))
+
+(define handle-left-menu (lambda (x y)
+                           (set! menu-item (dec menu-item))
+                           (cond ((< menu-item 0)
+                                  (set! menu-item 1)))
+                           (draw-modeline)
+                           (setCursorPos x y)))
+
+(define handle-right-menu (lambda (x y)
+                            (set! menu-item (inc menu-item))
+                            (cond ((> menu-item 1)
+                                   (set! menu-item 1)))
+                            (draw-modeline)
+                            (setCursorPos x y)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; keyboard handling
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define handle-enter (lambda ()
-                       (let* ((bufx (cursor->idx (get-x)))
-                              (bufy (cursor->idx (get-y)))
+(define handle-enter (lambda (x y)
+                       (let* ((bufx (cursor->idx x))
+                              (bufy (cursor->idx y))
                               (line (buffer:get bufy)))
                          (buffer:set bufy (str:sstring line 0 bufx))
                          (buffer:add (inc bufy)
                                      (str:sstring line (inc bufx)
                                                   (string-length line))))
-                       (draw-text (get-x) (get-y))
-                       (setCursorPos 1 (inc (get-y)))
+                       (draw-text x y scrollX scrollY)
+                       (setCursorPos 1 (inc y))
                        (draw-modeline)))
 
-(define handle-back (lambda ()
-                      (unless (= (get-x) (get-y) 1)
-                              (cond ((> (get-) 1)
-                                     (define line (buffer:get (cursor->idx (get-y))))
+(define handle-back (lambda (x y)
+                      (unless (= x y 1)
+                              (cond ((> y 1)
+                                     (define line (buffer:get (cursor->idx y)))
                                      (define newLine (str:combine
-                                                      (str:sstring line 0 (- (get-x) 2))
-                                                      (str:sstring line (get-x))))
-                                     (buffer:set (cursor->idx (get-y)) newLine)
-                                     (draw-line (cursor->idx (get-y)))
-                                     (setCursorPos (dec (get-x)) (get-y)))
-                                    ((> (get-y) 1)
+                                                      (str:sstring line 0 (- x 2))
+                                                      (str:sstring line x)))
+                                     (buffer:set (cursor->idx y) newLine)
+                                     (draw-line (cursor->idx y) scrollX scrollY)
+                                     (setCursorPos (dec x) y))
+                                    ((> y 1)
                                      (define prevLine (string-length
-                                                       (buffer:get (- (get-y) 2))))
+                                                       (buffer:get (- y 2))))
                                      (define newLine (str:combine
-                                                      (buffer:get (- (get-y) 2))
-                                                      (buffer:get (dec (get-y)))))
-                                     (buffer:set (dec (get-y)) newLine)
-                                     (buffer:remove (dec (get-y)))
-                                     (draw-text (get-x) (get-y))
-                                     (setCursorPos (inc prevLine) (dec (get-y))))))))
+                                                      (buffer:get (- y 2))
+                                                      (buffer:get (dec y))))
+                                     (buffer:set (dec y) newLine)
+                                     (buffer:remove (dec y))
+                                     (draw-text x y scrollX scrollY)
+                                     (setCursorPos (inc prevLine) (dec y)))))))
 
-(define handle-up (lambda ()
-                    (when (> (get-y) 1)
-                          (setCursorPos (get-x)
-                                        (dec (get-y))))))
+(define handle-up (lambda (x y)
+                    (when (> y 1)
+                          (setCursorPos x
+                                        (dec y)))))
 
-(define handle-down (lambda ()
-                      (when (< (get-y) (dec (buffer:size)))
-                            (setCursorPos (get-x) (inc (get-y))))))
+(define handle-down (lambda (x y)
+                      (when (< y (dec (buffer:size)))
+                            (setCursorPos x (inc y)))))
 
-(define handle-left (lambda ()
-                      (cond ((> (get-x) 1)
-                             (setCursorPos (dec (get-x))
-                                           (get-y)))
-                            ((> (get-y) 1)
+(define handle-left (lambda (x y)
+                      (cond ((> x 1)
+                             (setCursorPos (dec x)
+                                           y))
+                            ((> y 1)
                              (setCursorPos (string-length
-                                            (buffer:get (dec (cursor->idx (get-y)))))
-                                           (dec (get-y)))))))
+                                            (buffer:get (dec (cursor->idx y))))
+                                           (dec y))))))
 
-(define handle-right (lambda ()
-                       (cond ((< (get-x) (inc (string-length
-                                               (buffer:get (cursor->idx (get-y))))))
-                              (setCursorPos (inc (get-x)) (get-y)))
-                             ((< (get-y) (buffer:size))
-                              (setCursorPos 1 (inc (get-y)))))))
+(define handle-right (lambda (x y)
+                       (cond ((< x (inc (string-length
+                                         (buffer:get (cursor->idx y)))))
+                              (setCursorPos (inc x) y))
+                             ((< y (buffer:size))
+                              (setCursorPos 1 (inc y))))))
 
-(define handle-tab (lambda ()
-                     (define s (buffer:get (cursor->idx (get-y))))
-                     (buffer:set (cursor->idx (get-y)) (str:combine "  " s))
-                     (setCursorPos (+ 2 (get-x)) (get-y))
-                     (draw-line (cursor->idx (get-y)))))
+(define handle-tab (lambda (x y)
+                     (define s (buffer:get (cursor->idx y)))
+                     (buffer:set (cursor->idx y) (str:combine "  " s))
+                     (setCursorPos (+ 2 x) y)
+                     (draw-line (cursor->idx y) scrollX scrollY)))
 
-(define handle-ctrl (lambda ()
+(define handle-ctrl (lambda (x y)
                       (set! menu (not menu))
                       (draw-modeline)))
 
-(define handle-key (lambda ()
-                     (define s (buffer:get (cursor->idx (get-y))))
-                     (define newLine (str:combine (str:sstring s 0 (cursor->idx (get-x)))
-                                                  ((e:args) 0)
-                                                  (str:sstring s (get-x))))
-                     (buffer:set (cursor->idx (get-y)) newLine)
-                     (draw-line (cursor->idx (get-y)))
-                     (setCursorPos (inc (get-x)) (get-y))))
+(define handle-key (lambda (x y key)
+                     (define s (buffer:get (cursor->idx y)))
+                     (define newLine (str:combine (str:sstring s 0 (cursor->idx x))
+                                                  key
+                                                  (str:sstring s x)))
+                     (buffer:set (cursor->idx y) newLine)
+                     (draw-line (cursor->idx y) scrollX scrollY)
+                     (setCursorPos (inc x) y)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; main loop
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define run (lambda ()
-              (cond (running
-                     (define e (os:pull))
-                     (cond ((string=? (e:name) "char")
-                            (cond ((string=? ((e:args) 0) "__enter__")
-                                   (if menu
-                                       (handle-enter-menu)
-                                       (handle-enter)))
-                                  ((string=? ((e:args) 0) "__back__")
-                                   (handle-back))
-                                  ((string=? ((e:args) 0) "__up__")
-                                   (handle-up))
-                                  ((string=? ((e:args) 0) "__down__")
-                                   (handle-down))
-                                  ((string=? ((e:args) 0) "__left__")
-                                   (if menu
-                                       (handle-left-menu)
-                                       (handle-left)))
-                                  ((string=? ((e:args) 0) "__right__")
-                                   (if menu
-                                       (handle-right-menu)
-                                       (handle-right)))
-                                  ((string=? ((e:args) 0) "__tab__")
-                                   (handle-tab))
-                                  ((string=? ((e:args) 0) "__ctrl__")
-                                   (handle-ctrl))
-                                  (else
-                                   (handle-key (e:args))))))
-                     (run)))))
+              (let ((x (get-x))
+                    (y (get-y)))
+                (cond (running
+                       (define e (os:pull))
+                       (cond ((string=? (e:name) "char")
+                              (cond ((string=? ((e:args) 0) "__enter__")
+                                     (if menu
+                                         (handle-enter-menu x y)
+                                         (handle-enter x y)))
+                                    ((string=? ((e:args) 0) "__back__")
+                                     (handle-back x y))
+                                    ((string=? ((e:args) 0) "__up__")
+                                     (handle-up x y))
+                                    ((string=? ((e:args) 0) "__down__")
+                                     (handle-down x y))
+                                    ((string=? ((e:args) 0) "__left__")
+                                     (if menu
+                                         (handle-left-menu x y)
+                                         (handle-left x y)))
+                                    ((string=? ((e:args) 0) "__right__")
+                                     (if menu
+                                         (handle-right-menu x y)
+                                         (handle-right x y)))
+                                    ((string=? ((e:args) 0) "__tab__")
+                                     (handle-tab x y))
+                                    ((string=? ((e:args) 0) "__ctrl__")
+                                     (handle-ctrl x y))
+                                    (else
+                                     (handle-key ((e:args) 0) x y)))))
+                       (run))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NOTE: the linkedlist needs at least a single empty line
@@ -303,9 +308,9 @@
                (when (zero? (buffer:size))
                      (lines:add ""))
                (clear-term)
-               (draw-text (get-x) (get-y))
+               (draw-text (get-x) (get-y) scrollX scrollY)
                (draw-modeline)
-               (draw-text (get-x) (get-y))
+               (draw-text (get-x) (get-y) scrollX scrollY)
                (term:setCursorPos 1 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
