@@ -258,36 +258,50 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; main loop
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define menu-run (lambda (x y e)
+                   (let ((name (e:name))
+                         (key ((e:args) 0)))
+                     (cond ((string=? name "char")
+                            (cond ((string=? key "__enter__")
+                                   (handle-enter-menu x y))
+                                  ((string=? key "__left__")
+                                   (handle-left-menu x y))
+                                  ((string=? key "__right__")
+                                   (handle-right-menu x y))
+                                  ((string=? key "__ctrl__")
+                                   (handle-ctrl x y))))))))
+
+(define editor-run (lambda (x y e)
+                     (let ((name (e:name))
+                           (key ((e:args) 0)))
+                       (cond ((string=? name "char")
+                              (cond ((string=? key "__enter__")
+                                     (handle-enter x y))
+                                    ((string=? key "__back__")
+                                     (handle-back x y))
+                                    ((string=? key "__up__")
+                                     (handle-up x y))
+                                    ((string=? key "__down__")
+                                     (handle-down x y))
+                                    ((string=? key "__left__")
+                                     (handle-left x y))
+                                    ((string=? key "__right__")
+                                     (handle-right x y))
+                                    ((string=? key "__tab__")
+                                     (handle-tab x y))
+                                    ((string=? key "__ctrl__")
+                                     (handle-ctrl x y))
+                                    (else
+                                     (handle-key x y key))))))))
+
 (define run (lambda ()
               (when running
                     (let ((x (get-x))
                           (y (get-y))
                           (e (os:pull)))
-                      (cond ((string=? (e:name) "char")
-                             (cond ((string=? ((e:args) 0) "__enter__")
-                                    (if menu
-                                        (handle-enter-menu x y)
-                                        (handle-enter x y)))
-                                   ((string=? ((e:args) 0) "__back__")
-                                    (handle-back x y))
-                                   ((string=? ((e:args) 0) "__up__")
-                                    (handle-up x y))
-                                   ((string=? ((e:args) 0) "__down__")
-                                    (handle-down x y))
-                                   ((string=? ((e:args) 0) "__left__")
-                                    (if menu
-                                        (handle-left-menu x y)
-                                        (handle-left x y)))
-                                   ((string=? ((e:args) 0) "__right__")
-                                    (if menu
-                                        (handle-right-menu x y)
-                                        (handle-right x y)))
-                                   ((string=? ((e:args) 0) "__tab__")
-                                    (handle-tab x y))
-                                   ((string=? ((e:args) 0) "__ctrl__")
-                                    (handle-ctrl x y))
-                                   (else
-                                    (handle-key x y ((e:args) 0)))))))
+                      (if menu
+                          (menu-run x y e)
+                          (editor-run x y e)))
                     (run))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
