@@ -82,7 +82,7 @@
                               (term:setCursorPos 1 (idx->cursor index))
                               (term:clearLine)
                               (term:write (buf:get (+ index scrollY)))
-                              (write-lines (inc index) buf))))
+                              (write-lines (inc index) buf scrollX scrollY))))
 
 (define draw-text (lambda (x y scrollX scrollY)
                     (write-lines (cursor->idx y) buffer scrollX scrollY)
