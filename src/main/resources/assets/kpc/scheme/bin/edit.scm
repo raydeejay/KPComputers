@@ -11,7 +11,7 @@
 ;;(define y 1)
 (define scrollX 0)
 (define scrollY 0)
-(define buffer (java.util.LinkedList))
+(define txtbuf (java.util.LinkedList))
 (define filePath (args 0))
 (define menu #f)
 (define menu-item 0)
@@ -60,7 +60,7 @@
 
 (define load (lambda (path)
                (when (fs:exists path)
-                     (set! buffer (consume (fs:read path)
+                     (set! txtbuf (consume (fs:read path)
                                            (java.util.LinkedList))))))
 
 (define produce (lambda (file index buf)
@@ -70,7 +70,7 @@
                             (produce file (inc index) buf)))))
 
 (define save (lambda (path)
-               (produce (fs:open path) 0 buffer)
+               (produce (fs:open path) 0 txtbuf)
                (set! menu #f)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -85,13 +85,13 @@
                               (write-lines (inc index) buf scrollX scrollY))))
 
 (define draw-text (lambda (x y scrollX scrollY)
-                    (write-lines (cursor->idx y) buffer scrollX scrollY)
+                    (write-lines (cursor->idx y) txtbuf scrollX scrollY)
                     (set-cursor (- x scrollX) (- y scrollY))))
 
 (define draw-line (lambda (n scrollX scrollY)
                     (term:setCursorPos (- 1 scrollX) (- (inc n) scrollY))
                     (term:clearLine)
-                    (term:write (buffer:get n))
+                    (term:write (txtbuf:get n))
                     (term:setCursorPos (- (get-x) scrollX) (- (inc n) scrollY))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -183,9 +183,9 @@
 (define handle-enter (lambda (x y)
                        (let* ((bufx (cursor->idx x))
                               (bufy (cursor->idx y))
-                              (line (buffer:get bufy)))
-                         (buffer:set bufy (str:sstring line 0 bufx))
-                         (buffer:add (inc bufy)
+                              (line (txtbuf:get bufy)))
+                         (txtbuf:set bufy (str:sstring line 0 bufx))
+                         (txtbuf:add (inc bufy)
                                      (str:sstring line (inc bufx)
                                                   (string-length line))))
                        (draw-text x y scrollX scrollY)
@@ -195,21 +195,21 @@
 (define handle-back (lambda (x y)
                       (unless (= x y 1)
                               (cond ((> y 1)
-                                     (define line (buffer:get (cursor->idx y)))
+                                     (define line (txtbuf:get (cursor->idx y)))
                                      (define newLine (str:combine
                                                       (str:sstring line 0 (- x 2))
                                                       (str:sstring line x)))
-                                     (buffer:set (cursor->idx y) newLine)
+                                     (txtbuf:set (cursor->idx y) newLine)
                                      (draw-line (cursor->idx y) scrollX scrollY)
                                      (setCursorPos (dec x) y))
                                     ((> y 1)
                                      (define prevLine (string-length
-                                                       (buffer:get (- y 2))))
+                                                       (txtbuf:get (- y 2))))
                                      (define newLine (str:combine
-                                                      (buffer:get (- y 2))
-                                                      (buffer:get (dec y))))
-                                     (buffer:set (dec y) newLine)
-                                     (buffer:remove (dec y))
+                                                      (txtbuf:get (- y 2))
+                                                      (txtbuf:get (dec y))))
+                                     (txtbuf:set (dec y) newLine)
+                                     (txtbuf:remove (dec y))
                                      (draw-text x y scrollX scrollY)
                                      (setCursorPos (inc prevLine) (dec y)))))))
 
@@ -218,7 +218,7 @@
                           (setCursorPos x (dec y)))))
 
 (define handle-down (lambda (x y)
-                      (when (< y (dec (buffer:size)))
+                      (when (< y (dec (txtbuf:size)))
                             (setCursorPos x (inc y)))))
 
 (define handle-left (lambda (x y)
@@ -226,19 +226,19 @@
                              (setCursorPos (dec x) y))
                             ((> y 1)
                              (setCursorPos (string-length
-                                            (buffer:get (dec (cursor->idx y))))
+                                            (txtbuf:get (dec (cursor->idx y))))
                                            (dec y))))))
 
 (define handle-right (lambda (x y)
                        (cond ((< x (inc (string-length
-                                         (buffer:get (cursor->idx y)))))
+                                         (txtbuf:get (cursor->idx y)))))
                               (setCursorPos (inc x) y))
-                             ((< y (buffer:size))
+                             ((< y (txtbuf:size))
                               (setCursorPos 1 (inc y))))))
 
 (define handle-tab (lambda (x y)
-                     (define s (buffer:get (cursor->idx y)))
-                     (buffer:set (cursor->idx y) (str:combine "  " s))
+                     (define s (txtbuf:get (cursor->idx y)))
+                     (txtbuf:set (cursor->idx y) (str:combine "  " s))
                      (setCursorPos (+ 2 x) y)
                      (draw-line (cursor->idx y) scrollX scrollY)))
 
@@ -247,11 +247,11 @@
                       (draw-modeline)))
 
 (define handle-key (lambda (x y key)
-                     (define s (buffer:get (cursor->idx y)))
+                     (define s (txtbuf:get (cursor->idx y)))
                      (define newLine (str:combine (str:sstring s 0 (cursor->idx x))
                                                   key
                                                   (str:sstring s x)))
-                     (buffer:set (cursor->idx y) newLine)
+                     (txtbuf:set (cursor->idx y) newLine)
                      (draw-line (cursor->idx y) scrollX scrollY)
                      (setCursorPos (inc x) y)))
 
@@ -309,7 +309,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; (define fill (lambda (index stop)
 ;;                (cond ((not (= index stop))
-;;                       (buffer:add "")
+;;                       (txtbuf:add "")
 ;;                       (fill (inc index) stop)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -317,8 +317,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define init (lambda ()
                (load filePath)
-               (when (zero? (buffer:size))
-                     (buffer:add ""))
+               (when (zero? (txtbuf:size))
+                     (txtbuf:add ""))
                (clear-term)
                (draw-text (get-x) (get-y) scrollX scrollY)
                (draw-modeline)
