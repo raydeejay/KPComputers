@@ -60,8 +60,7 @@
 
 (define load (lambda (path)
                (when (fs:exists path)
-                     (set! txtbuf (consume (fs:read path)
-                                           (java.util.LinkedList))))))
+                     (consume (fs:read path) (java.util.LinkedList)))))
 
 (define produce (lambda (file index buf)
                   (unless (< index (buf:size))
@@ -316,7 +315,7 @@
 ;; initialization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define init (lambda ()
-               (load filePath)
+               (set! txtbuf (load filePath))
                (when (zero? (txtbuf:size))
                      (txtbuf:add ""))
                (clear-term)
