@@ -304,7 +304,7 @@
 (define init (lambda ()
                (load filePath)
                (when (zero? (buffer:size))
-                     (lines:add ""))
+                     (buffer:add ""))
                (clear-term)
                (draw-text (get-x) (get-y) scrollX scrollY)
                (draw-modeline)
