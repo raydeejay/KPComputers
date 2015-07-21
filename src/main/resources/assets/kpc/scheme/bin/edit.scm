@@ -55,8 +55,8 @@
                   (let ((line (file:readLine)))
                     (if (eof? line)
                         acc
-                        (do (acc:add line)
-                            (consume file acc))))))
+                        (begin (acc:add line)
+                               (consume file acc))))))
 
 (define load (lambda (path)
                (when (fs:exists path)
