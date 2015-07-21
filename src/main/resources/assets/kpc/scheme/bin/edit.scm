@@ -215,8 +215,7 @@
 
 (define handle-up (lambda (x y)
                     (when (> y 1)
-                          (setCursorPos x
-                                        (dec y)))))
+                          (setCursorPos x (dec y)))))
 
 (define handle-down (lambda (x y)
                       (when (< y (dec (buffer:size)))
@@ -224,8 +223,7 @@
 
 (define handle-left (lambda (x y)
                       (cond ((> x 1)
-                             (setCursorPos (dec x)
-                                           y))
+                             (setCursorPos (dec x) y))
                             ((> y 1)
                              (setCursorPos (string-length
                                             (buffer:get (dec (cursor->idx y))))
