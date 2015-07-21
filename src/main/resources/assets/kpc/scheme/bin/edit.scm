@@ -69,8 +69,7 @@
                             (produce file (inc index) buf)))))
 
 (define save (lambda (path)
-               (produce (fs:open path) 0 txtbuf)
-               (set! menu #f)))
+               (produce (fs:open path) 0 txtbuf)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; writing to the terminal
@@ -123,7 +122,8 @@
 
 (define do-menu-function (lambda (func)
                            (cond ((zero? func)
-                                  (save filePath))
+                                  (save filePath)
+                                  (set! menu #f))
                                  ((= func 1)
                                   (set! running #f)))))
 
