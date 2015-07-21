@@ -295,10 +295,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NOTE: the linkedlist needs at least a single empty line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define fill (lambda (index stop)
-               (cond ((not (= index stop))
-                      (buffer:add "")
-                      (fill (inc index) stop)))))
+;; (define fill (lambda (index stop)
+;;                (cond ((not (= index stop))
+;;                       (buffer:add "")
+;;                       (fill (inc index) stop)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; initialization
