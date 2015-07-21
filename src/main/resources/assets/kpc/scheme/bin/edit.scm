@@ -84,9 +84,9 @@
                               (term:write (buf:get (+ index scrollY)))
                               (write-lines (inc index) buf))))
 
-(define draw-text (lambda ()
-                    (write-lines (dec (get-y)) buffer)
-                    (set-cursor (- (get-x) scrollX) (- (get-y) scrollY))))
+(define draw-text (lambda (x y)
+                    (write-lines (cursor->idx y) buffer)
+                    (set-cursor (- x scrollX) (- y scrollY))))
 
 (define draw-line (lambda (n)
                     (term:setCursorPos (- 1 scrollX) (- (inc n) scrollY))
@@ -152,7 +152,7 @@
                               (set! screenY (dec h))
                               (set! redraw #t)))
                        (cond (redraw
-                              (draw-text)))
+                              (draw-text (get-x) (get-y))))
                        (set-cursor screenX screenY)
                        (draw-modeline)))
 
@@ -192,7 +192,7 @@
                                                       (buffer:get (dec (get-y)))))
                                      (buffer:set (dec (get-y)) newLine)
                                      (buffer:remove (dec (get-y)))
-                                     (draw-text)
+                                     (draw-text (get-x) (get-y))
                                      (setCursorPos (inc prevLine) (dec (get-y))))))))
 
 (define handle-up (lambda ()
@@ -298,9 +298,9 @@
                (when (zero? (buffer:size))
                      (lines:add ""))
                (clear-term)
-               (draw-text)
+               (draw-text (get-x) (get-y))
                (draw-modeline)
-               (draw-text)
+               (draw-text (get-x) (get-y))
                (term:setCursorPos 1 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
