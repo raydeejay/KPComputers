@@ -128,6 +128,24 @@
                                  ((= func 1)
                                   (set! running #f)))))
 
+(define handle-enter-menu (lambda ()
+                            (do-menu-function menu-item)
+                            (draw-modeline)))
+
+(define handle-left-menu (lambda ()
+                           (set! menu-item (dec menu-item))
+                           (cond ((< menu-item 0)
+                                  (set! menu-item 1)))
+                           (draw-modeline)
+                           (setCursorPos (get-x) (get-y))))
+
+(define handle-right-menu (lambda ()
+                            (set! menu-item (inc menu-item))
+                            (cond ((> menu-item 1)
+                                   (set! menu-item 1)))
+                            (draw-modeline)
+                            (setCursorPos (get-x) (get-y))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; cursor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -160,18 +178,15 @@
 ;; keyboard handling
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define handle-enter (lambda ()
-                       (cond ((not menu)
-                              (let* ((bufx (cursor->idx (get-x)))
-                                     (bufy (cursor->idx (get-y)))
-                                     (line (buffer:get bufy)))
-                                (buffer:set bufy (str:sstring line 0 bufx))
-                                (buffer:add (inc bufy)
-                                            (str:sstring line (inc bufx)
-                                                         (string-length line))))
-                              (draw-text)
-                              (setCursorPos 1 (inc (get-y))))
-                             (else
-                              (do-menu-function menu-item)))
+                       (let* ((bufx (cursor->idx (get-x)))
+                              (bufy (cursor->idx (get-y)))
+                              (line (buffer:get bufy)))
+                         (buffer:set bufy (str:sstring line 0 bufx))
+                         (buffer:add (inc bufy)
+                                     (str:sstring line (inc bufx)
+                                                  (string-length line))))
+                       (draw-text (get-x) (get-y))
+                       (setCursorPos 1 (inc (get-y)))
                        (draw-modeline)))
 
 (define handle-back (lambda ()
@@ -205,36 +220,20 @@
                             (setCursorPos (get-x) (inc (get-y))))))
 
 (define handle-left (lambda ()
-                      (cond ((not menu)
-                             (cond ((> (get-x) 1)
-                                    (setCursorPos (dec (get-x))
-                                                  (get-y)))
-                                   ((> (get-y) 1)
-                                    (setCursorPos (string-length
-                                                   (buffer:get
-                                                    (dec (cursor->idx (get-y)))))
-                                                  (dec (get-y))))))
-                            (else
-                             (set! menu-item (dec menu-item))
-                             (cond ((< menu-item 0)
-                                    (set! menu-item 1)))
-                             (draw-modeline)
-                             (setCursorPos (get-x) (get-y))))))
+                      (cond ((> (get-x) 1)
+                             (setCursorPos (dec (get-x))
+                                           (get-y)))
+                            ((> (get-y) 1)
+                             (setCursorPos (string-length
+                                            (buffer:get (dec (cursor->idx (get-y)))))
+                                           (dec (get-y)))))))
 
 (define handle-right (lambda ()
-                       (cond ((not menu)
-                              (cond ((< (get-x) (inc
-                                                 (string-length
-                                                  (buffer:get (cursor->idx (get-y))))))
-                                     (setCursorPos (inc (get-x)) (get-y)))
-                                    ((< (get-y) (buffer:size))
-                                     (setCursorPos 1 (inc (get-y))))))
-                             (else
-                              (set! menu-item (inc menu-item))
-                              (cond ((> menu-item 1)
-                                     (set! menu-item 1)))
-                              (draw-modeline)
-                              (setCursorPos (get-x) (get-y))))))
+                       (cond ((< (get-x) (inc (string-length
+                                               (buffer:get (cursor->idx (get-y))))))
+                              (setCursorPos (inc (get-x)) (get-y)))
+                             ((< (get-y) (buffer:size))
+                              (setCursorPos 1 (inc (get-y)))))))
 
 (define handle-tab (lambda ()
                      (define s (buffer:get (cursor->idx (get-y))))
@@ -263,7 +262,9 @@
                      (define e (os:pull))
                      (cond ((string=? (e:name) "char")
                             (cond ((string=? ((e:args) 0) "__enter__")
-                                   (handle-enter))
+                                   (if menu
+                                       (handle-enter-menu)
+                                       (handle-enter)))
                                   ((string=? ((e:args) 0) "__back__")
                                    (handle-back))
                                   ((string=? ((e:args) 0) "__up__")
@@ -271,9 +272,13 @@
                                   ((string=? ((e:args) 0) "__down__")
                                    (handle-down))
                                   ((string=? ((e:args) 0) "__left__")
-                                   (handle-left))
+                                   (if menu
+                                       (handle-left-menu)
+                                       (handle-left)))
                                   ((string=? ((e:args) 0) "__right__")
-                                   (handle-right))
+                                   (if menu
+                                       (handle-right-menu)
+                                       (handle-right)))
                                   ((string=? ((e:args) 0) "__tab__")
                                    (handle-tab))
                                   ((string=? ((e:args) 0) "__ctrl__")
