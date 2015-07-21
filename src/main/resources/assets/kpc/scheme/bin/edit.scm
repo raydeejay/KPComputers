@@ -289,7 +289,7 @@
                                     ((string=? ((e:args) 0) "__ctrl__")
                                      (handle-ctrl x y))
                                     (else
-                                     (handle-key ((e:args) 0) x y)))))
+                                     (handle-key x y ((e:args) 0))))))
                        (run))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
