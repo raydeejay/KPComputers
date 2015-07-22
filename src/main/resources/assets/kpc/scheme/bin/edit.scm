@@ -117,7 +117,7 @@
                         (set-cursor 1 (dec h))
                         (if menu
                             (draw-menu menu-item)
-                            (draw-item "Press Ctrl for menu"))
+                            (draw-item "Press Ctrl for menu" #f))
                         (set-cursor (- (get-x) scrollX) (- (get-y) scrollY))))
 
 (define do-menu-function (lambda (func)
