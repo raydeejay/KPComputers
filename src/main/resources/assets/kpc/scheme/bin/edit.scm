@@ -35,15 +35,9 @@
 (define get-x (lambda () (term:getCursorX)))
 (define get-y (lambda () (term:getCursorY)))
 
-(define set-x (lambda (x))
-  (term:setCursorX x))
-
-(define set-y (lambda (y))
-  (term:setCursorY y))
-
-(define set-cursor (lambda (x y))
-  (set-x x)
-  (set-y y))
+(define set-x (lambda (x) (term:setCursorX x)))
+(define set-y (lambda (y) (term:setCursorY y)))
+(define set-cursor (lambda (x y) (set-x x) (set-y y)))
 
 (define idx->cursor (lambda (n) (inc n)))
 (define cursor->idx (lambda (n) (dec n)))
