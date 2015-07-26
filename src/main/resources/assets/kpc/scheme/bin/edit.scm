@@ -116,9 +116,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; keyboard handling
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define x->point-x (lambda (x) (dec (+ x scrollX))))
-(define y->point-y (lambda (y) (dec (+ y scrollY))))
-
 (define handle-enter (lambda (buf) (insert-newline buf)))
 (define handle-back (lambda (buf) (remove-at-point-backward buf)))
 (define handle-up (lambda (buf) (move-line-backward buf)))
