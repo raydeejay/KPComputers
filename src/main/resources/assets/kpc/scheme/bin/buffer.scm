@@ -142,7 +142,6 @@
                   (if (not (zero? px))
                       (set-buffer-point! buf (cons 0 py))))))
 
-
 (define move-to-eol
   (lambda (buf)
     (with-buf-dsl buf
