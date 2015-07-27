@@ -220,7 +220,7 @@
                (screen:start-screen)
                (term:setCursorPos 1 1)
                (if (zero? (length (args)))
-                   (set! *buffers* (cons (make-buffer "*scratch*") *buffers*))
+                   (set! *buffers* (list (make-buffer "*scratch*")))
                    (for-each (lambda (f)
                                (set! *buffers* (cons (load-file f) *buffers*)))
                              (args)))
