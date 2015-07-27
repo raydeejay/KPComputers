@@ -80,7 +80,7 @@
 ;; menu
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define *menu* (list (cons "Save" (lambda ()
-                                    (save-file (buffer-name *current-buffer*))
+                                    (save-file (buffer-name *current-buffer*) *current-buffer*)
                                     (set! menu #f)))
                      (cons "Load" (lambda ()
                                     (set! *current-buffer* (load-file "another.txt"))
