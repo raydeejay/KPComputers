@@ -219,11 +219,13 @@
                (clear-term)
                (screen:start-screen)
                (term:setCursorPos 1 1)
-               (let ((file-path (args 0)))
-                 (set! *current-buffer* (if (string=? file-path "")
-                                            (make-buffer "*scratch*")
-                                            (load-file file-path))))
-               (set! *buffers* (list *current-buffer*))
+               (if (zero? (length (args)))
+                   (make-buffer "*scratch*")
+                   (for-each (lambda (f)
+                               (set! *buffers* (cons (load-file f) *buffers*)))
+                             (args)))
+               (set! *buffers* (reverse *buffers*))
+               (set! *current-buffer* (car *buffers*))
                (term:update *current-buffer*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
