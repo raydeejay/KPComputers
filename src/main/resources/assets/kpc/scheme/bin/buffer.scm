@@ -55,16 +55,17 @@
     (with-buf-dsl buf
                   (let* ((t (lines:get (inc py)))
                          (next-line-number::int t))
-                    (lines:set py (string-append s t))
+                    (lines:set py (string-append line t))
                     (lines:remove next-line-number) ;; kludge
                     (set-buffer-point! buf (cons px py))))))
 
 (define remove-at-point
   (lambda (buf)
-    (if (= px (string-length line))
-        (if (< py (dec (lines:size)))
-            (remove-newline buf))
-        (remove-char buf))))
+    (with-buf-dsl buf
+                  (if (= px (string-length line))
+                      (if (< py (dec (lines:size)))
+                          (remove-newline buf))
+                      (remove-char buf)))))
 
 (define remove-char-backward
   (lambda (buf)
@@ -119,7 +120,7 @@
   (lambda (buf)
     (with-buf-dsl buf
                   (if (not (= py (dec (lines:size))))
-                      (let ((new-x (min (string-length line)
+                      (let ((new-x (min px
                                         (string-length (lines:get (inc py))))))
                         (set-buffer-point! buf (cons new-x (inc py))))
                       ;; beep?
@@ -129,7 +130,7 @@
   (lambda (buf)
     (with-buf-dsl buf
                   (if (not (zero? py))
-                      (let ((new-x (min (string-length line)
+                      (let ((new-x (min px
                                         (string-length (lines:get (dec py))))))
                         (set-buffer-point! buf (cons new-x (dec py))))
                       ;; beep?
