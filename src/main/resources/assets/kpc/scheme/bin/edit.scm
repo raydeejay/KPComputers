@@ -2,6 +2,8 @@
 (load "buffer.scm")
 (load "mocks.scm")
 
+(require 'srfi-1)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; constants
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -13,8 +15,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define scrollX 0)
 (define scrollY 0)
-(define txtbuf (java.util.LinkedList))
-;(define filePath (args 0))
+(define *buffers* '())
+(define *current-buffer* #!null)
+(define filePath (args 0))
 (define menu #f)
 (define menu-item 0)
 (define running #t)
@@ -29,26 +32,37 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; loading and saving
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (define eof? (lambda (line) (= -1 line)))
+(define eof? (lambda (line) (or (= -1 line)
+                           (eq? #!null line))))
 
-;; (define consume (lambda (file acc)
-;;                   (let ((line (file:readLine)))
-;;                     (if (eof? line)
-;;                         acc
-;;                         (begin (acc:add line)
-;;                                (consume file acc))))))
+(define consume (lambda (file lines)
+                  (let ((line (file:read-line)))
+                    (if (eof? line)
+                        lines
+                        (begin (lines:add line)
+                               (consume file lines))))))
 
-;; (define load (lambda (path)
-;;                (when (fs:exists path)
-;;                      (consume (fs:read path) (java.util.LinkedList)))))
+(define load-file (lambda (path)
+                    (let ((buf (make-buffer path)))
+                      (when (fs:exists path)
+                            (let* ((file (fs:read path))
+                                   (lines (consume file (java.util.LinkedList))))
+                              (file:close)
+                              (set-buffer-lines! buf lines)))
+                      buf)))
 
-;; (define produce (lambda (file buf)
-;;                   (do ((i 0 (inc i)))
-;;                       ((< i (txtbuf:size)))
-;;                     (file:write (string-append (txtbuf:get i) #\n)))))
+(define produce (lambda (file buf)
+                  (do ((i 0 (inc i)))
+                      ((= i (buf:size)))
+                    (file:write (buf:get i))
+                    (if (< i (buf:size))
+                        (file:write "\n")))))
 
-;; (define save (lambda (path)
-;;                (produce (fs:open path) txtbuf)))
+(define save-file (lambda (path buf)
+               (let ((file (fs:open path))
+                     (lines (buffer-lines buf)))
+                 (produce file lines)
+                 (file:close))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; writing to the terminal
@@ -75,7 +89,9 @@
 (define draw-menu (lambda (mi)
                     (term:setCursorPos 1 (dec h))
                     (draw-item "Save" (zero? mi))
-                    (draw-item "Exit" (= mi 1))))
+                    (draw-item "Load" (= mi 1))
+                    (draw-item "Next" (= mi 2))
+                    (draw-item "Exit" (= mi 3))))
 
 (define draw-modeline
   (lambda (buf)
@@ -92,9 +108,21 @@
 
 (define do-menu-function (lambda (func)
                            (cond ((zero? func)
-                                  ;; (save filePath)
+                                  (save-file (buffer-name *current-buffer*))
                                   (set! menu #f))
                                  ((= func 1)
+                                  (set! *current-buffer* (load-file "another.txt"))
+                                  (set! *buffers* (cons *current-buffer* *buffers*))
+                                  (set! menu #f))
+                                 ((= func 2)
+                                  (let ((next-list (cdr
+                                                    (find-tail (lambda (e) (eq? e *current-buffer*))
+                                                               *buffers*))))
+                                    (set! *current-buffer* (if (eq? next-list '())
+                                                               (car *buffers*)
+                                                               (car next-list))))
+                                  (set! menu #f))
+                                 ((= func 3)
                                   (set! running #f)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -106,12 +134,12 @@
 (define handle-left-menu (lambda ()
                            (set! menu-item (dec menu-item))
                            (cond ((< menu-item 0)
-                                  (set! menu-item 1)))))
+                                  (set! menu-item 2)))))
 
 (define handle-right-menu (lambda ()
                             (set! menu-item (inc menu-item))
-                            (cond ((> menu-item 1)
-                                   (set! menu-item 1)))))
+                            (cond ((> menu-item 2)
+                                   (set! menu-item 2)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; keyboard handling
@@ -182,23 +210,25 @@
                       (if menu
                           (menu-run buf e)
                           (editor-run buf e)))
-                    (term:update buf)
-                    (run buf))))
+                    (term:update *current-buffer*)
+                    (run *current-buffer*))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; initialization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define init (lambda ()
-               ;;               (set! txtbuf (load filePath))
                (clear-term)
                (screen:start-screen)
                (term:setCursorPos 1 1)
-               (set! txtbuf (make-buffer "*scratch*"))
-               (term:update txtbuf)))
+               (set! *current-buffer* (if (string=? filePath "")
+                                          (make-buffer "*scratch*")
+                                          (load-file filePath)))
+               (set! *buffers* (list *current-buffer*))
+               (term:update *current-buffer*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; entry point
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (init)
-(run txtbuf)
+(run *current-buffer*)
 (clear-term)
