@@ -102,21 +102,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; mock/wrapper for the fs object
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define private-file-port ())
 (define fs:exists (lambda (f) (file-exists? f)))
-;; fs:read
-;; fs:open
+(define fs:open (lambda (path) (open-output-file path))) ;; open a file for WRITING
+(define fs:read (lambda (path)
+                  (java.io.BufferedReader
+                   (java.io.FileReader path)))) ;; OPEN A FILE for READING
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; mock/wrapper for the file object
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; file:readLine
-;; file:write
+(defmacro file:write (line) `(write-string ,line file))
+(defmacro file:close () `(close-port file))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; mock/wrapper for the os object
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (define e::com.googlecode.lanterna.input.KeyStroke #!null) ;; eekkkk......
 (define e #!null) ;; eekkkk......
 (define e-type::com.googlecode.lanterna.input.KeyType #!null) ;; eekkkk......
 (define os:pull (lambda ()
@@ -156,3 +157,7 @@
 ;; mock/wrapper for the args "object"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; (args) 0
+(define args (lambda (n)
+               (if (< n (command-line-arguments:size))
+                   (command-line-arguments n)
+                   "")))
