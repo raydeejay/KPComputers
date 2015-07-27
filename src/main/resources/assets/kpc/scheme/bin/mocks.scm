@@ -53,7 +53,7 @@
 (define term:refresh (lambda ()
                        (term:setCursorPos (term:getCursorX)
                                           (term:getCursorY))
-                       (screen:refresh)))
+                       (screen:refresh (com.googlecode.lanterna.screen.Screen:RefreshType:valueOf "DELTA"))))
 (define term:write-char (lambda (c)
                           (screen:set-character (dec (term:getCursorX))
                                                 (dec (term:getCursorY))
@@ -144,7 +144,7 @@
                            (set! e "__f12__"))
                           ((eqv? key-type (com.googlecode.lanterna.input.KeyType:valueOf "Character"))
                            (set! e ((i:get-character):char-value)))
-                          (else (set! e " "))))
+                          (else (set! e " ")))) ;; debug/dev code
                   e))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -156,5 +156,4 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; mock/wrapper for the args "object"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (args) 0
 (define args (lambda () (vector->list command-line-arguments)))
