@@ -135,7 +135,21 @@
                         (set-buffer-point! buf (cons new-x (dec py))))
                       ;; beep?
                       ))))
- 
+
+(define move-to-bol
+  (lambda (buf)
+    (with-buf-dsl buf
+                  (if (not (zero? px))
+                      (set-buffer-point! buf (cons 0 py))))))
+
+
+(define move-to-eol
+  (lambda (buf)
+    (with-buf-dsl buf
+                  (let ((eol (string-length line)))
+                    (if (< px eol)
+                        (set-buffer-point! buf (cons eol py)))))))
+
 ;;;;;;;;;; test code
 (define make-test-buffer (lambda ()
                            (let ((b (make-buffer "test")))
