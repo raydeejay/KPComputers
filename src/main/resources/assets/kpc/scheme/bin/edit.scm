@@ -17,9 +17,9 @@
 (define scrollY 0)
 (define *buffers* '())
 (define *current-buffer* #!null)
-(define filePath (args 0))
 (define menu #f)
 (define menu-item 0)
+
 (define running #t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -79,6 +79,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; menu
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define *menu* (list (cons "Save" (lambda ()
+                                    (save-file (buffer-name *current-buffer*))
+                                    (set! menu #f)))
+                     (cons "Load" (lambda ()
+                                    (set! *current-buffer* (load-file "another.txt"))
+                                    (set! *buffers* (cons *current-buffer* *buffers*))
+                                    (set! menu #f)))
+                     (cons "Next" (lambda ()
+                                    (let ((next-list (cdr
+                                                      (find-tail (lambda (e) (eq? e *current-buffer*))
+                                                                 *buffers*))))
+                                      (set! *current-buffer* (if (eq? next-list '())
+                                                                 (car *buffers*)
+                                                                 (car next-list))))))
+                     (cons "Exit" (lambda () (set! running #f)))))
+
+
 (define draw-item (lambda (item selected)
                     (let ((item (if selected
                                     (string-append "[" item "]")
@@ -86,12 +103,11 @@
                       (term:write item)
                       (term:setCursorX (+ (term:getCursorX) (string-length item))))))
 
-(define draw-menu (lambda (mi)
+(define draw-menu (lambda (item-n)
                     (term:setCursorPos 1 (dec h))
-                    (draw-item "Save" (zero? mi))
-                    (draw-item "Load" (= mi 1))
-                    (draw-item "Next" (= mi 2))
-                    (draw-item "Exit" (= mi 3))))
+                    (do ((i 0 (inc i)))
+                        ((= i (length *menu*)))
+                      (draw-item (car (*menu* i)) (= item-n i)))))
 
 (define draw-modeline
   (lambda (buf)
@@ -106,24 +122,7 @@
                      (term:setCursorPos (- w (string-length lnStr)) (dec h))
                      (term:write lnStr)))))
 
-(define do-menu-function (lambda (func)
-                           (cond ((zero? func)
-                                  (save-file (buffer-name *current-buffer*))
-                                  (set! menu #f))
-                                 ((= func 1)
-                                  (set! *current-buffer* (load-file "another.txt"))
-                                  (set! *buffers* (cons *current-buffer* *buffers*))
-                                  (set! menu #f))
-                                 ((= func 2)
-                                  (let ((next-list (cdr
-                                                    (find-tail (lambda (e) (eq? e *current-buffer*))
-                                                               *buffers*))))
-                                    (set! *current-buffer* (if (eq? next-list '())
-                                                               (car *buffers*)
-                                                               (car next-list))))
-                                  (set! menu #f))
-                                 ((= func 3)
-                                  (set! running #f)))))
+(define do-menu-function (lambda (item-n) ((cdr (*menu* item-n)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; menu keyboard handling
@@ -134,12 +133,12 @@
 (define handle-left-menu (lambda ()
                            (set! menu-item (dec menu-item))
                            (cond ((< menu-item 0)
-                                  (set! menu-item 2)))))
+                                  (set! menu-item (dec (length *menu*)))))))
 
 (define handle-right-menu (lambda ()
                             (set! menu-item (inc menu-item))
-                            (cond ((> menu-item 2)
-                                   (set! menu-item 2)))))
+                            (cond ((= menu-item (length *menu*))
+                                   (set! menu-item 0)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; keyboard handling
@@ -220,9 +219,10 @@
                (clear-term)
                (screen:start-screen)
                (term:setCursorPos 1 1)
-               (set! *current-buffer* (if (string=? filePath "")
-                                          (make-buffer "*scratch*")
-                                          (load-file filePath)))
+               (let ((file-path (args 0)))
+                 (set! *current-buffer* (if (string=? file-path "")
+                                            (make-buffer "*scratch*")
+                                            (load-file file-path))))
                (set! *buffers* (list *current-buffer*))
                (term:update *current-buffer*)))
 
