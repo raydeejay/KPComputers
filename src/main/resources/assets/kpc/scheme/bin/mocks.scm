@@ -157,7 +157,4 @@
 ;; mock/wrapper for the args "object"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; (args) 0
-(define args (lambda (n)
-               (if (< n (command-line-arguments:size))
-                   (command-line-arguments n)
-                   "")))
+(define args (lambda () (vector->list command-line-arguments)))
