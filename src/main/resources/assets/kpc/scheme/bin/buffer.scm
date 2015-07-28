@@ -53,10 +53,10 @@
 (define remove-newline
   (lambda (buf)
     (with-buf-dsl buf
-                  (let* ((t (lines:get (inc py)))
-                         (next-line-number::int t))
+                  (let* ((next-line-number::int (inc py))      ;; kludge
+                         (t (lines:get next-line-number)))
                     (lines:set py (string-append line t))
-                    (lines:remove next-line-number) ;; kludge
+                    (lines:remove next-line-number)
                     (set-buffer-point! buf (cons px py))))))
 
 (define remove-at-point
