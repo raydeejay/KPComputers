@@ -7,3 +7,10 @@
      (do ((i n (- i 1)))
          ((not (< 0 i)))
        body ...))))
+
+;; threading macro from clojure :D
+(defmacro -> (v #!rest forms)
+  (if (eq? forms ())
+      `,v
+      `(-> (,(caar forms) ,v ,@(cdar forms))
+           ,@(cdr forms))))
