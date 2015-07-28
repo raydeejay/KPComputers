@@ -122,6 +122,7 @@
 (define e-type::com.googlecode.lanterna.input.KeyType #!null) ;; eekkkk......
 
 (define-alias KeyType com.googlecode.lanterna.input.KeyType)
+
 (define os:pull (lambda ()
                   (let* ((i (screen:read-input))
                          (key-type (i:get-key-type)))
@@ -146,6 +147,8 @@
                            (set! e "__home__"))
                           ((eqv? key-type (KeyType:valueOf "End"))
                            (set! e "__end__"))
+                          ((eqv? key-type (KeyType:valueOf "Delete"))
+                           (set! e "__delete__"))
                           ((eqv? key-type (KeyType:valueOf "F12"))
                            (set! e "__f12__"))
                           ((eqv? key-type (KeyType:valueOf "Character"))

@@ -177,6 +177,7 @@
                             (add-key-binding "__right__" move-forward)
                             (add-key-binding "__home__" move-to-bol)
                             (add-key-binding "__end__" move-to-eol)
+                            (add-key-binding "__delete__" remove-at-point)
                             (add-key-binding "__ctrl__" toggle-menu)
                             (add-key-binding "__escape__" toggle-menu)
                             (add-key-binding "__f12__" quit-editor-hard)))))
