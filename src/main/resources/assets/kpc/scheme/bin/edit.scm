@@ -3,6 +3,7 @@
 (load "mocks.scm")
 
 (require 'srfi-1)
+(import (rnrs hashtables))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; constants
@@ -122,100 +123,88 @@
                      (term:setCursorPos (- w (string-length lnStr)) (dec h))
                      (term:write lnStr)))))
 
-(define do-menu-function (lambda (item-n) ((cdr (*menu* item-n)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; menu keyboard handling
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define handle-enter-menu (lambda ()
-                            (do-menu-function menu-item)))
-
-(define handle-left-menu (lambda ()
-                           (set! menu-item (dec menu-item))
-                           (cond ((< menu-item 0)
-                                  (set! menu-item (dec (length *menu*)))))))
-
-(define handle-right-menu (lambda ()
-                            (set! menu-item (inc menu-item))
-                            (cond ((= menu-item (length *menu*))
-                                   (set! menu-item 0)))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; keyboard handling
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define handle-enter (lambda (buf) (insert-newline buf)))
-(define handle-back (lambda (buf) (remove-at-point-backward buf)))
-(define handle-up (lambda (buf) (move-line-backward buf)))
-(define handle-down (lambda (buf) (move-line-forward buf)))
-(define handle-left (lambda (buf) (move-backward buf)))
-(define handle-right (lambda (buf) (move-forward buf)))
-(define handle-home (lambda (buf) (move-to-bol buf)))
-(define handle-end (lambda (buf) (move-to-eol buf)))
+(define *keybindings* '())
+(define add-key-binding (lambda (table key fn) (cons (pair key fn) table)))
+;; (define make-bindings-table (lambda () (make-hashtable string-hash string=?)))
 
-;; (define handle-tab (lambda (x y)
-;;                      (define s (txtbuf:get (cursor->idx y)))
-;;                      (txtbuf:set (cursor->idx y) (string-append "  " s))
-;;                      (setCursorPos (+ 2 x) y)
-;;                      (draw-line (cursor->idx y) scrollX scrollY)))
+;; general handlers
+(define toggle-menu (lambda (buf) (set! menu (not menu))))
+(define quit-editor-hard (lambda (buf) (exit 0)))
+(define dummy-kh (lambda (#!rest params) #t))
 
+
+(define do-menu-function (lambda (item-n) ((cdr (*menu* item-n)))))
+(define activate-menu-item (lambda (buf) (do-menu-function menu-item)))
+
+(define move-menu-backward (lambda (buf) (set! menu-item (if (zero? menu-item)
+                                                        (dec (length *menu*))
+                                                        (dec menu-item)))))
+
+(define move-menu-forward (lambda (buf) (set! menu-item (if (= menu-item (dec (length *menu*)))
+                                                       0
+                                                       (inc menu-item)))))
+
+;; editor specific handlers
 (define handle-key (lambda (buf key) (insert-char buf key)))
+(define handle-tab (lambda (buf) (dotimes 2 (insert-char buf " "))))
 
-(define handle-ctrl (lambda () (set! menu (not menu))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; keyboard bindings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define install-menu-bindings
+  (lambda (buf)
+    (set! *keybindings* (-> '()
+                            (add-key-binding "__enter__" activate-menu-item)
+                            (add-key-binding "__left__" move-menu-backward)
+                            (add-key-binding "__right__" move-menu-forward)
+                            (add-key-binding "__ctrl__" toggle-menu)
+                            (add-key-binding "__escape__" toggle-menu)
+                            (add-key-binding "__f12__" quit-editor-hard)))))
+
+
+(define install-editor-bindings
+  (lambda (buf)
+    (set! *keybindings* (-> '()
+                            (add-key-binding "__enter__" insert-newline)
+                            (add-key-binding "__back__" remove-at-point-backward)
+                            (add-key-binding "__up__" move-line-backward)
+                            (add-key-binding "__down__" move-line-forward)
+                            (add-key-binding "__left__" move-backward)
+                            (add-key-binding "__right__" move-forward)
+                            (add-key-binding "__home__" move-to-bol)
+                            (add-key-binding "__end__" move-to-eol)
+                            (add-key-binding "__ctrl__" toggle-menu)
+                            (add-key-binding "__escape__" toggle-menu)
+                            (add-key-binding "__f12__" quit-editor-hard)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; main loop
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define menu-run (lambda (buf e)
+(define base-run (lambda (buf e default-kh)
                    (let ((name (e:name))
                          (key ((e:args) 0)))
-                     (cond ((string=? name "char")
-                            (cond ((string=? key "__enter__")
-                                   (handle-enter-menu))
-                                  ((string=? key "__left__")
-                                   (handle-left-menu))
-                                  ((string=? key "__right__")
-                                   (handle-right-menu))
-                                  ((or (string=? key "__ctrl__")
-                                       (string=? key "__escape__"))
-                                   (handle-ctrl))))))))
+                     (and (string=? name "char")
+                          (not (string=? key "__ignored__"))
+                          (let ((binding (find (lambda (i)
+                                                 (string=? (car i) key))
+                                               *keybindings*)))
+                            (if binding
+                                ((cdr binding) buf)
+                                (default-kh buf key)))))))
 
-(define editor-run (lambda (buf e)
-                     (let ((name (e:name))
-                           (key ((e:args) 0)))
-                       (and (string=? name "char")
-                            (not (string=? key "__ignored__"))
-                            (cond ((string=? key "__enter__")
-                                   (handle-enter buf))
-                                  ((string=? key "__back__")
-                                   (handle-back buf))
-                                  ((string=? key "__up__")
-                                   (handle-up buf))
-                                  ((string=? key "__down__")
-                                   (handle-down buf))
-                                  ((string=? key "__left__")
-                                   (handle-left buf))
-                                  ((string=? key "__right__")
-                                   (handle-right buf))
-                                  ((string=? key "__home__")
-                                   (handle-home buf))
-                                  ((string=? key "__end__")
-                                   (handle-end buf))
-                                  ;; ((string=? key "__tab__")
-                                  ;;  (handle-tab buf))
-                                  ((or (string=? key "__ctrl__")
-                                       (string=? key "__escape__"))
-                                   (handle-ctrl))
-                                  ((string=? key "__f12__")
-                                   (exit 0)) ;; yeah \o/
-                                  (else
-                                   (handle-key buf key)))))))
+(define menu-run (lambda (buf e) (base-run buf e dummy-kh)))
+(define editor-run (lambda (buf e) (base-run buf e handle-key)))
 
 (define run (lambda (buf)
               (when running
                     (let ((e (os:pull)))
                       (if menu
-                          (menu-run buf e)
-                          (editor-run buf e)))
+                          (begin (install-menu-bindings buf) (menu-run buf e))
+                          (begin (install-editor-bindings buf) (editor-run buf e))))
                     (term:update *current-buffer*)
                     (run *current-buffer*))))
 
@@ -239,5 +228,6 @@
 ;; entry point
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (init)
+(install-editor-bindings *current-buffer*)
 (run *current-buffer*)
 (clear-term)
