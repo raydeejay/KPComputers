@@ -60,10 +60,10 @@
                         (file:write "\n")))))
 
 (define save-file (lambda (path buf)
-               (let ((file (fs:open path))
-                     (lines (buffer-lines buf)))
-                 (produce file lines)
-                 (file:close))))
+                    (let ((file (fs:open path))
+                          (lines (buffer-lines buf)))
+                      (produce file lines)
+                      (file:close))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; writing to the terminal
@@ -117,11 +117,13 @@
      (term:clearLine)
      (if menu
          (draw-menu menu-item)
-         (term:write (format #f " ~a - Press Ctrl for menu" (buffer-name buf)))))
-     (with-buf-dsl buf
-                   (let ((lnStr (format #f "Ln ~d Col ~d" py px)))
-                     (term:setCursorPos (- w (string-length lnStr)) (dec h))
-                     (term:write lnStr)))))
+         (term:write (format #f " ~a - Press ~a for menu"
+                             (buffer-name buf)
+                             (if *kpc* "Ctrl" "Escape")))))
+    (with-buf-dsl buf
+                  (let ((lnStr (format #f "Ln ~d Col ~d" py px)))
+                    (term:setCursorPos (- w (string-length lnStr)) (dec h))
+                    (term:write lnStr)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; keyboard handling
