@@ -166,3 +166,5 @@
 ;; mock/wrapper for the args "object"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define args (lambda () (vector->list command-line-arguments)))
+
+(define *kpc* #f)
