@@ -66,6 +66,23 @@
                           (remove-newline buf))
                       (remove-char buf)))))
 
+(define *overwrite-mode* #f)
+(define toggle-overwrite-mode (lambda (dummy)
+                                (set! *overwrite-mode* (not *overwrite-mode*))))
+
+(define replace-char-at-point
+  (lambda (buf c)
+    (with-buf-dsl buf
+                  (if (< px (string-length line))
+                      (remove-char buf))
+                  (insert-char buf c))))
+
+(define insert-or-replace-char
+  (lambda (buf c)
+    (if *overwrite-mode*
+        (replace-char-at-point buf c)
+        (insert-char buf c))))
+
 (define remove-char-backward
   (lambda (buf)
     (with-buf-dsl buf
