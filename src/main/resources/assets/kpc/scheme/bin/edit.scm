@@ -153,7 +153,7 @@
                                                        (inc menu-item)))))
 
 ;; editor specific handlers
-(define handle-key (lambda (buf key) (insert-char buf key)))
+(define handle-key (lambda (buf key) (insert-or-replace-char buf key)))
 (define handle-tab (lambda (buf) (dotimes 2 (insert-char buf " "))))
 
 
