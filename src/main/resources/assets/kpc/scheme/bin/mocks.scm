@@ -6,7 +6,7 @@
 ;;
 ;; eventually I may ask her to change it
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(load "utils.scm")
+;; (load "utils.scm")
 
 ;; terminal
 (define tf::com.googlecode.lanterna.terminal.DefaultTerminalFactory
