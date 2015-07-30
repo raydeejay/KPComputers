@@ -151,6 +151,7 @@
                                  ("ArrowRight" "__right__")
                                  ("Home" "__home__")
                                  ("End" "__end__")
+                                 ("Insert" "__insert__")
                                  ("Delete" "__delete__")
                                  ("F12" "__f12__"))))
 
