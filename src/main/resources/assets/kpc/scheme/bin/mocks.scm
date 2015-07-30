@@ -60,14 +60,23 @@
                        (term:setCursorPos (term:getCursorX)
                                           (term:getCursorY))
                        (screen:refresh (com.googlecode.lanterna.screen.Screen:RefreshType:valueOf "DELTA"))))
-(define term:write-char (lambda (c)
+
+(define term:advance (lambda () (term:setCursorX (+ 1 (term:getCursorX)))))
+
+(define apply-sgr-to-char (lambda (c #!optional attrs)
+                            (if (or (not attrs) (eq? attrs '()))
+                                c
+                                (apply-sgr-to-char (c:withModifier (car attrs))
+                                                   (cdr attrs)))))
+
+(define term:write-char (lambda (c #!optional attrs)
                           (screen:set-character (dec (term:getCursorX))
                                                 (dec (term:getCursorY))
-                                                (char* c))))
-(define term:advance (lambda () (term:setCursorX (+ 1 (term:getCursorX)))))
-(define term:write (lambda (str)
+                                                (apply-sgr-to-char c attrs))))
+
+(define term:write (lambda (str #!rest attrs)
                      (for-each (lambda (c)
-                                 (term:write-char c)
+                                 (term:write-char (char* c) attrs)
                                  (term:advance))
                                (string->list str))))
 
@@ -96,12 +105,13 @@
                      (screen:clear)
                      (term:setCursorPos 1 1)
                      (term:refresh)))
-(define term:clearLine (lambda ()
+
+(define term:clearLine (lambda (#!rest attrs)
                          (with-preserved-cursor
                           (term:setCursorX 1)
                           (do ((i 1 (inc i)))
                               ((> i (term:getWidth)) 'exit)  ;; just to remember this
-                            (term:write-char #\space)
+                            (term:write-char (char* #\space) attrs)
                             (term:advance)))))
 
 
