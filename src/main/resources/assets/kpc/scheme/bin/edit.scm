@@ -101,7 +101,7 @@
                     (let ((item (if selected
                                     (string-append "[" item "]")
                                     (string-append " " item " "))))
-                      (term:write item)
+                      (term:write item (SGR "REVERSE"))
                       (term:setCursorX (+ (term:getCursorX) (string-length item))))))
 
 (define draw-menu (lambda (item-n)
@@ -114,16 +114,16 @@
   (lambda (buf)
     (with-preserved-cursor
      (term:setCursorPos 1 (dec h))
-     (term:clearLine)
+     (term:clearLine (SGR "REVERSE"))
      (if menu
          (draw-menu menu-item)
          (term:write (format #f " ~a - Press ~a for menu"
                              (buffer-name buf)
-                             (if *kpc* "Ctrl" "Escape")))))
+                             (if *kpc* "Ctrl" "Escape")) (SGR "REVERSE"))))
     (with-buf-dsl buf
                   (let ((lnStr (format #f "Ln ~d Col ~d" py px)))
                     (term:setCursorPos (- w (string-length lnStr)) (dec h))
-                    (term:write lnStr)))))
+                    (term:write lnStr (SGR "REVERSE"))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; keyboard handling
