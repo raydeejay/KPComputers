@@ -21,7 +21,18 @@
 (define-alias char* com.googlecode.lanterna.TextCharacter)
 (define-alias xy* com.googlecode.lanterna.TerminalPosition)
 
-;; state
+;; this crappy macro doesn't preserve the potential return value,
+;; but, oh, well... it will do for now
+(defmacro with-preserved-cursor (#!rest body)
+  (let ((old-x-symb (gentemp))
+        (old-y-symb (gentemp)))
+    `(let ((,old-x-symb (term:getCursorX))
+           (,old-y-symb (term:getCursorY)))
+       ,@body
+       (term:setCursorX ,old-x-symb)
+       (term:setCursorY ,old-y-symb))))
+
+;; TODO: global state, eek.. better create a class
 (define private-x 1)
 (define private-y 1)
 
@@ -38,17 +49,6 @@
                             (screen:set-cursor-position (xy* (- xx 1) (- yy 1)))))
 (define term:setCursorX (lambda (xx) (term:setCursorPos xx (term:getCursorY))))
 (define term:setCursorY (lambda (yy) (term:setCursorPos (term:getCursorX) yy)))
-
-;; this crappy macro doesn't preserve the potential return value,
-;; but, oh, well... it will do for now
-(defmacro with-preserved-cursor (#!rest body)
-  (let ((old-x-symb (gentemp))
-        (old-y-symb (gentemp)))
-    `(let ((,old-x-symb (term:getCursorX))
-           (,old-y-symb (term:getCursorY)))
-       ,@body
-       (term:setCursorX ,old-x-symb)
-       (term:setCursorY ,old-y-symb))))
 
 (define term:refresh (lambda ()
                        (term:setCursorPos (term:getCursorX)
@@ -75,7 +75,7 @@
                           ((<= x scrollX)
                            (set! scrollX (- w (- w x) 1))))
                     (cond ((> (- y scrollY) (- h 2))
-                          (set! scrollY (- y (- h 2))))
+                           (set! scrollY (- y (- h 2))))
                           ((<= y scrollY)
                            (set! scrollY (dec scrollY))))
                     (let ((ox (- x scrollX))
@@ -167,4 +167,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define args (lambda () (vector->list command-line-arguments)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; to determmine if we run on KPC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define *kpc* #f)
