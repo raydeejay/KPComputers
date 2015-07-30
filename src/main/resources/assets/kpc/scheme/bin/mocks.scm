@@ -21,6 +21,12 @@
 (define-alias char* com.googlecode.lanterna.TextCharacter)
 (define-alias xy* com.googlecode.lanterna.TerminalPosition)
 
+(define-alias SGR_ com.googlecode.lanterna.SGR)
+(defmacro SGR (str) `(SGR_:valueOf ,str))
+
+(define-alias color_ com.googlecode.lanterna.TextColor:ANSI)
+(defmacro color (str) `(color_:valueOf ,str))
+
 ;; this crappy macro doesn't preserve the potential return value,
 ;; but, oh, well... it will do for now
 (defmacro with-preserved-cursor (#!rest body)
