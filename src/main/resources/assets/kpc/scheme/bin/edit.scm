@@ -121,7 +121,10 @@
                              (buffer-name buf)
                              (if *kpc* "Ctrl" "Escape")) (SGR "REVERSE"))))
     (with-buf-dsl buf
-                  (let ((lnStr (format #f "Ln ~d Col ~d" py px)))
+                  (let ((lnStr (format #f "~a Ln ~d Col ~d"
+                                       (if *overwrite-mode* "[Ovr]" "")
+                                       py
+                                       px)))
                     (term:setCursorPos (- w (string-length lnStr)) (dec h))
                     (term:write lnStr (SGR "REVERSE"))))))
 
