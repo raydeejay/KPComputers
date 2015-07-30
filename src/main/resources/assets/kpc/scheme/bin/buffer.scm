@@ -90,9 +90,9 @@
 (define remove-at-point-backward
   (lambda (buf)
     (with-buf-dsl buf
-     (if (zero? px)
-         (remove-newline-backward buf)
-         (remove-char-backward buf)))))
+                  (if (zero? px)
+                      (remove-newline-backward buf)
+                      (remove-char-backward buf)))))
 
 (define move-forward
   (lambda (buf)
