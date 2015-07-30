@@ -17,9 +17,9 @@
 (define screen::com.googlecode.lanterna.screen.TerminalScreen
   (com.googlecode.lanterna.screen.TerminalScreen terminal))
 
-;; TODO: these can probably be aliased instead...
-(defmacro char* (c) `(com.googlecode.lanterna.TextCharacter ,c))
-(defmacro xy* (x y) `(com.googlecode.lanterna.TerminalPosition ,x ,y))
+;; aliases
+(define-alias char* com.googlecode.lanterna.TextCharacter)
+(define-alias xy* com.googlecode.lanterna.TerminalPosition)
 
 ;; state
 (define private-x 1)
