@@ -47,8 +47,7 @@
                   (lines:set py (string-append
                                  (substring line 0 px)
                                  (substring line (inc px)
-                                            (string-length line))))
-                  (set-buffer-point! buf (cons (inc px) py)))))
+                                            (string-length line)))))))
 
 (define remove-newline
   (lambda (buf)
