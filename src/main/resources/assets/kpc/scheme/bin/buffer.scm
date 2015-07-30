@@ -41,6 +41,13 @@
                              (substring line px (string-length line)))
                   (set-buffer-point! buf (cons 0 (inc py))))))
 
+(define insert-string (lambda (buf str)
+                        (string-for-each (lambda (c) (insert-char buf (string c))) str)))
+
+(define insert-line (lambda (buf str)
+                      (insert-string buf str)
+                      (insert-newline buf)))
+
 (define remove-char
   (lambda (buf)
     (with-buf-dsl buf
@@ -165,19 +172,31 @@
                     (if (< px eol)
                         (set-buffer-point! buf (cons eol py)))))))
 
-;;;;;;;;;; test code
-(define make-test-buffer (lambda ()
-                           (let ((b (make-buffer "test")))
-                             (insert-char b "a")
-                             (insert-char b "a")
-                             (insert-char b "a")
-                             (insert-newline b)
-                             (insert-char b "b")
-                             (insert-char b "b")
-                             (insert-newline b)
-                             (insert-char b "c")
-                             (insert-char b "c")
-                             (insert-char b "c")
-                             (insert-char b "c")
-                             (insert-char b "c")
-                             b)))
+;;;;;;;;;; scratch buffer
+(define scratch-buffer-default-text
+  '(";; Welcome to AGITE, which is meant to be A Gentle Introduction to Emacs."
+    ";;"
+    ";; This may eventually become a buffer for evaluating scheme expressions,"
+    ";; but for now, it serves as a kickstart to the keys that AGITE uses."
+    ";;"
+    ";; Use the arrow keys the move the point (cursor). Type to enter text."
+    ";; Delete and Backspace do what you would expect. Insert toggles overwriting."
+    ";;"
+    ";; C-m (Control+m) will open the menu. Use it to save your work, create a new"
+    ";; file, load other files, or switch to the next buffer. Use the menu :D"
+    ";;"
+    ";; One interesting characteristic of Agite is that it's designed to run"
+    ";; as well on desktop computers running Java, in either GUI or text"
+    ";; environments, as inside computers simulated by the KPC mod for"
+    ";; Minecraft (link here)."
+    ";;"
+    ";; Remember that AGITE is still in a very early stage."
+    ""))
+
+(define make-scratch-buffer (lambda ()
+                              (let ((buf (make-buffer "*scratch*")))
+                                (for-each (lambda (each)
+                                            (insert-string buf each)
+                                            (insert-newline buf))
+                                          scratch-buffer-default-text)
+                                buf)))
