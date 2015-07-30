@@ -56,10 +56,11 @@
 (define term:setCursorX (lambda (xx) (term:setCursorPos xx (term:getCursorY))))
 (define term:setCursorY (lambda (yy) (term:setCursorPos (term:getCursorX) yy)))
 
+(define DELTA (com.googlecode.lanterna.screen.Screen:RefreshType:valueOf "DELTA"))
 (define term:refresh (lambda ()
                        (term:setCursorPos (term:getCursorX)
                                           (term:getCursorY))
-                       (screen:refresh (com.googlecode.lanterna.screen.Screen:RefreshType:valueOf "DELTA"))))
+                       (screen:refresh DELTA)))
 
 (define term:advance (lambda () (term:setCursorX (+ 1 (term:getCursorX)))))
 
